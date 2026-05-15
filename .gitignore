@@ -1,0 +1,8 @@
+# Vendored skill repos — cloned by setup.sh
+vendor/
+
+# Per-agent tool lock files
+.skill-lock.json
+
+# macOS
+.DS_Store
