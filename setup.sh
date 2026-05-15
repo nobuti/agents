@@ -31,28 +31,29 @@ else
 fi
 
 # ── 2. Clone vendor repos ─────────────────────────────────────────────
-# Keep in sync with sync.sh VENDOR_SKILLS
 VENDOR_DIR="$REPO_DIR/vendor"
-VENDOR_SKILLS=(
-    "addyosmani/agent-skills:skills"
-)
-
+VENDOR_CONF="$REPO_DIR/vendors.conf"
 mkdir -p "$VENDOR_DIR"
 
-for entry in "${VENDOR_SKILLS[@]}"; do
-    owner_repo="${entry%%:*}"
-    dest="$VENDOR_DIR/${owner_repo//\//-}"
-    echo "Vendor: $owner_repo"
+if [ ! -f "$VENDOR_CONF" ]; then
+    echo "No vendors.conf found, skipping vendor setup."
+else
+    while IFS= read -r entry; do
+        [[ -z "$entry" || "$entry" == \#* ]] && continue
+        owner_repo="${entry%%:*}"
+        dest="$VENDOR_DIR/${owner_repo//\//-}"
+        echo "Vendor: $owner_repo"
 
-    if [ -d "$dest/.git" ]; then
-        printf "  \033[90m=\033[0m already cloned\n"
-        git -C "$dest" pull --ff-only --quiet 2>/dev/null || \
-            printf "  \033[33m!\033[0m pull failed — run vendor-update.sh later\n"
-    else
-        echo "  \033[32m+\033[0m cloning..."
-        git clone --quiet "https://github.com/$owner_repo" "$dest"
-    fi
-done
+        if [ -d "$dest/.git" ]; then
+            printf "  \033[90m=\033[0m already cloned\n"
+            git -C "$dest" pull --ff-only --quiet 2>/dev/null || \
+                printf "  \033[33m!\033[0m pull failed, run vendor-update.sh later\n"
+        else
+            printf "  \033[32m+\033[0m cloning\n"
+            git clone --quiet "https://github.com/$owner_repo" "$dest"
+        fi
+    done < "$VENDOR_CONF"
+fi
 
 echo ""
 

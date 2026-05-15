@@ -20,8 +20,10 @@ bash ~/Dev/agents/setup.sh
 `setup.sh` does three things:
 
 1. Symlinks `~/.agents` to the repo
-2. Clones vendor skill repos into `vendor/`
+2. Clones vendor repos listed in `vendors.conf`
 3. Runs `sync.sh` to wire up symlinks for every agent tool it finds
+
+The script is idempotent. Running it twice does nothing harmful.
 
 ## Structure
 
@@ -29,9 +31,10 @@ bash ~/Dev/agents/setup.sh
 agents/
 ├── AGENTS.md              # Shared instructions all agents follow
 ├── RTK.md                 # Personal reference notes
-├── setup.sh               # Bootstrap for new machines
+├── setup.sh               # Bootstrap for new machines (idempotent)
 ├── sync.sh                # Reconcile symlinks after changes
 ├── vendor-update.sh       # Pull latest from upstream vendor repos
+├── vendors.conf           # Vendor registry (single source of truth)
 ├── commands/              # Shared commands (pr, commits)
 ├── skills/                # Personal skills (tracked in git)
 │   ├── caveman/
@@ -42,15 +45,29 @@ agents/
 │   ├── skill-optimizer/
 │   ├── solid/
 │   └── writer-persona/
-└── vendor/                # Third-party skill repos (cloned, not tracked)
+└── vendor/                # Third-party repos (cloned, not tracked)
     └── addyosmani-agent-skills/
 ```
 
-### Personal vs vendor skills
+## Managing vendors
 
-Skills I write or maintain live directly in `skills/` and are tracked in git. Third-party skills come from upstream repos cloned into `vendor/`, then symlinked into `skills/`. The `.gitignore` keeps vendor out of the repo.
+All vendor repos are declared in one file: `vendors.conf`.
 
-If you want to add a personal skill, drop it in `skills/` and commit. If you want to add a vendor repo, add it to `VENDOR_SKILLS` in both `sync.sh` and `setup.sh`.
+```
+# owner/repo:skillsSubdir
+addyosmani/agent-skills:skills
+```
+
+Format is `owner/repo:skillsSubdir`. The repo gets cloned into `vendor/` and each directory inside `skillsSubdir/` is symlinked into `skills/`.
+
+To add a vendor, add one line to `vendors.conf` and run setup.
+
+```bash
+echo "owner/repo:skills" >> vendors.conf
+bash setup.sh
+```
+
+To remove one, delete the line from `vendors.conf`, remove the symlink from `skills/`, and delete the repo directory from `vendor/`.
 
 ## Updating
 
@@ -61,7 +78,7 @@ bash vendor-update.sh
 bash sync.sh
 ```
 
-`vendor-update.sh` pulls each vendor repo with `--ff-only`. `sync.sh` creates any new symlinks that appeared from upstream updates. Safe to run multiple times.
+`vendor-update.sh` pulls each vendor repo with `--ff-only`. `sync.sh` creates any new symlinks that appeared from upstream updates. Both scripts are safe to run multiple times.
 
 ## How it works
 

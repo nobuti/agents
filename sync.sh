@@ -16,12 +16,7 @@ VENDOR_DIR="$AGENTS_DIR/vendor"
 
 SHARED_COMMANDS=(pr.md commits.md)
 
-# Vendor skill repos: "<owner>/<repo>:<skills-subdir>"
-# Each <repo>'s <skills-subdir>/<name>/ is symlinked into $SKILLS_DIR/<name>.
-# Updates are NOT performed here — run vendor-update.sh.
-VENDOR_SKILLS=(
-    "addyosmani/agent-skills:skills"
-)
+VENDOR_CONF="$AGENTS_DIR/vendors.conf"
 
 # Counters
 CREATED=0; EXISTED=0; CLEANED=0; RESTORED=0; WARNED=0
@@ -206,14 +201,17 @@ link_vendor_skills() {
     done
 }
 
-for entry in "${VENDOR_SKILLS[@]}"; do
-    owner_repo="${entry%%:*}"
-    skills_subdir="${entry##*:}"
-    repo_dir="$VENDOR_DIR/${owner_repo//\//-}"
-    echo "  $owner_repo:"
-    ensure_vendor_repo "$owner_repo" "$repo_dir" || continue
-    link_vendor_skills "$repo_dir" "$skills_subdir"
-done
+if [ -f "$VENDOR_CONF" ]; then
+    while IFS= read -r entry; do
+        [[ -z "$entry" || "$entry" == \#* ]] && continue
+        owner_repo="${entry%%:*}"
+        skills_subdir="${entry##*:}"
+        repo_dir="$VENDOR_DIR/${owner_repo//\//-}"
+        echo "  $owner_repo:"
+        ensure_vendor_repo "$owner_repo" "$repo_dir" || continue
+        link_vendor_skills "$repo_dir" "$skills_subdir"
+    done < "$VENDOR_CONF"
+fi
 
 echo ""
 
