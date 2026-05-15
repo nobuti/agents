@@ -20,10 +20,10 @@ bash ~/Dev/agents/setup.sh
 `setup.sh` does three things:
 
 1. Symlinks `~/.agents` to the repo
-2. Clones vendor repos listed in `vendors.conf`
+2. Clones any missing vendor repos listed in `vendors.conf`
 3. Runs `sync.sh` to wire up symlinks for every agent tool it finds
 
-The script is idempotent. Running it twice does nothing harmful.
+The script is idempotent. Running it twice does nothing harmful. Existing vendor repos are left untouched during setup reruns.
 
 ## Structure
 
@@ -36,6 +36,8 @@ agents/
 ├── vendor-update.sh       # Pull latest from upstream vendor repos
 ├── vendors.conf           # Vendor registry (single source of truth)
 ├── commands/              # Shared commands (pr, commits)
+├── scripts/
+│   └── lib/vendors.sh     # Shared vendor parsing/path helpers
 ├── skills/                # Personal skills (tracked in git)
 │   ├── caveman/
 │   ├── dev-workflow/
@@ -45,6 +47,8 @@ agents/
 │   ├── skill-optimizer/
 │   ├── solid/
 │   └── writer-persona/
+├── tests/
+│   └── vendor-lifecycle.sh
 └── vendor/                # Third-party repos (cloned, not tracked)
     └── addyosmani-agent-skills/
 ```
@@ -60,6 +64,19 @@ addyosmani/agent-skills:skills
 
 Format is `owner/repo:skillsSubdir`. The repo gets cloned into `vendor/` and each directory inside `skillsSubdir/` is symlinked into `skills/`.
 
+`sync.sh` is authoritative for vendored skill symlinks. It will:
+
+- create missing vendored skill symlinks
+- prune stale vendored skill symlinks by default
+- report orphaned repos under `vendor/`
+- fail hard if two vendors export the same skill name
+
+To preview sync changes without mutating the filesystem:
+
+```bash
+bash sync.sh --dry-run
+```
+
 To add a vendor, add one line to `vendors.conf` and run setup.
 
 ```bash
@@ -67,18 +84,18 @@ echo "owner/repo:skills" >> vendors.conf
 bash setup.sh
 ```
 
-To remove one, delete the line from `vendors.conf`, remove the symlink from `skills/`, and delete the repo directory from `vendor/`.
+To remove one, delete the line from `vendors.conf` and run `bash sync.sh`. Stale vendored skill symlinks are pruned automatically. Any leftover repo directory under `vendor/` will be reported as orphaned until you delete it.
 
 ## Updating
 
-Pull vendor changes, then reconcile symlinks.
+Pull vendor changes explicitly, then reconcile symlinks.
 
 ```bash
 bash vendor-update.sh
 bash sync.sh
 ```
 
-`vendor-update.sh` pulls each vendor repo with `--ff-only`. `sync.sh` creates any new symlinks that appeared from upstream updates. Both scripts are safe to run multiple times.
+`vendor-update.sh` pulls each configured vendor repo with `--ff-only`. `sync.sh` then creates new vendored skill symlinks and removes stale ones. Both scripts are safe to run multiple times.
 
 ## How it works
 

@@ -9,6 +9,8 @@
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=./scripts/lib/vendors.sh
+source "$REPO_DIR/scripts/lib/vendors.sh"
 
 # ── 1. Create ~/.agents symlink ───────────────────────────────────────
 if [ -L "$HOME/.agents" ]; then
@@ -35,24 +37,26 @@ VENDOR_DIR="$REPO_DIR/vendor"
 VENDOR_CONF="$REPO_DIR/vendors.conf"
 mkdir -p "$VENDOR_DIR"
 
+setup_vendor_repo() {
+    local owner_repo="$1"
+    local skills_subdir="$2"
+    local dest="$3"
+
+    echo "Vendor: $owner_repo"
+
+    if [ -d "$dest/.git" ]; then
+        printf "  \033[90m=\033[0m already cloned\n"
+        return
+    fi
+
+    printf "  \033[32m+\033[0m cloning\n"
+    git clone --quiet "$(vendor_clone_url "$owner_repo")" "$dest"
+}
+
 if [ ! -f "$VENDOR_CONF" ]; then
     echo "No vendors.conf found, skipping vendor setup."
 else
-    while IFS= read -r entry; do
-        [[ -z "$entry" || "$entry" == \#* ]] && continue
-        owner_repo="${entry%%:*}"
-        dest="$VENDOR_DIR/${owner_repo//\//-}"
-        echo "Vendor: $owner_repo"
-
-        if [ -d "$dest/.git" ]; then
-            printf "  \033[90m=\033[0m already cloned\n"
-            git -C "$dest" pull --ff-only --quiet 2>/dev/null || \
-                printf "  \033[33m!\033[0m pull failed, run vendor-update.sh later\n"
-        else
-            printf "  \033[32m+\033[0m cloning\n"
-            git clone --quiet "https://github.com/$owner_repo" "$dest"
-        fi
-    done < "$VENDOR_CONF"
+    vendor_each_config "$VENDOR_CONF" "$VENDOR_DIR" setup_vendor_repo
 fi
 
 echo ""
