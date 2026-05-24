@@ -10,7 +10,6 @@ source "$SCRIPT_DIR/scripts/lib/vendors.sh"
 AGENTS_DIR="${AGENTS_DIR:-$HOME/.agents}"
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
 CODEX_DIR="${CODEX_DIR:-$HOME/.codex}"
-OPENCODE_DIR="${OPENCODE_DIR:-$HOME/.opencode}"
 CURSOR_DIR="${CURSOR_DIR:-$HOME/.cursor}"
 
 AGENTS_MD="$AGENTS_DIR/AGENTS.md"
@@ -455,16 +454,6 @@ if [ -d "$CODEX_DIR" ]; then
     fi
 fi
 
-# Opencode
-if [ -d "$OPENCODE_DIR" ]; then
-    echo "  Opencode:"
-    ensure_symlink "$AGENTS_MD" "$OPENCODE_DIR/AGENTS.md"
-    if [ -d "$OPENCODE_DIR/command" ]; then
-        for cmd in "${SHARED_COMMANDS[@]}"; do
-            ensure_symlink "$COMMANDS_DIR/$cmd" "$OPENCODE_DIR/command/$cmd"
-        done
-    fi
-fi
 
 # Cursor
 if [ -d "$CURSOR_DIR" ]; then

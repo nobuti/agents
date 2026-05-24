@@ -5,7 +5,7 @@
 # Does three things:
 #   1. Symlinks ~/.agents → this repo
 #   2. Clones vendor repos into vendor/
-#   3. Runs sync.sh to wire everything up to .claude, .codex, .opencode, .cursor
+#   3. Runs sync.sh to wire everything up to .claude, .codex, .cursor
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"

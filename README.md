@@ -4,7 +4,7 @@ Personal skill pack and config shared across AI coding agents. Works with Claude
 
 ## What this is
 
-I use multiple AI coding tools and got tired of copying the same skills and instructions between `.claude/`, `.codex/`, `.opencode/`, and `.cursor/`.
+I use multiple AI coding tools and got tired of copying the same skills and instructions between `.claude/`, `.codex/`, and `.cursor/`.
 
 This repo is the single source of truth. Everything lives here. Each agent tool gets a symlink. Change something once, it shows up everywhere.
 
@@ -110,7 +110,6 @@ Instead of duplicating files, `sync.sh` creates symlinks from each tool director
 .claude/commands/   -> ~/.agents/commands/
 .codex/AGENTS.md    -> ~/.agents/AGENTS.md
 .codex/skills/      -> ~/.agents/skills/
-.opencode/AGENTS.md -> ~/.agents/AGENTS.md
 .cursor/commands/   -> ~/.agents/commands/pr.md (etc)
 ```
 
