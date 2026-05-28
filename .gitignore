@@ -22,7 +22,8 @@ skills/*
 !skills/solid/**
 !skills/writer-persona/
 !skills/writer-persona/**
-
+!skills/to-prd/
+!skills/to-prd/**
 # Per-agent tool lock files
 .skill-lock.json
 
