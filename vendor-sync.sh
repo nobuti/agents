@@ -199,6 +199,27 @@ claude_plugin_name_from_spec() {
     esac
 }
 
+# Extract marketplace from "agent-skills@addy-agent-skills" → "addy-agent-skills"
+claude_marketplace_from_spec() {
+    local name="$1"
+    case "$name" in
+        *@*)
+            printf '%s' "${name#*@}"
+            ;;
+        *)
+            printf '%s' "claude-plugins-official"
+            ;;
+    esac
+}
+
+# Check if marketplace is already registered in known_marketplaces.json
+claude_marketplace_is_known() {
+    local marketplace="$1"
+    local known_json="${CLAUDE_DIR:-$HOME/.claude}/plugins/known_marketplaces.json"
+    [ -f "$known_json" ] || return 1
+    jq -e --arg m "$marketplace" 'has($m)' "$known_json" >/dev/null 2>&1
+}
+
 sync_claude() {
     echo ""
     echo "Claude Code"
@@ -209,7 +230,7 @@ sync_claude() {
     fi
 
     # Build desired plugin list
-    local desired_names=() desired_specs=()
+    local desired_names=() desired_specs=() desired_vids=()
     local i
     for ((i = 0; i < ${#V_ID[@]}; i++)); do
         agent_in_list "claude" "${V_AGENTS[$i]}" || continue
@@ -218,6 +239,7 @@ sync_claude() {
         name="$(claude_plugin_name_from_spec "$spec")"
         desired_names+=("$name")
         desired_specs+=("$spec")
+        desired_vids+=("${V_ID[$i]}")
     done
 
     if [ ${#desired_names[@]} -eq 0 ]; then
@@ -250,6 +272,11 @@ sync_claude() {
                 log WARN "$name — installed but cache missing at $path"
             fi
         else
+            local marketplace
+            marketplace="$(claude_marketplace_from_spec "$name")"
+            if [ "$marketplace" != "claude-plugins-official" ] && ! claude_marketplace_is_known "$marketplace"; then
+                log ACTION "Run inside claude: /plugin marketplace add ${desired_vids[$i]}"
+            fi
             log ACTION "Run inside claude: /plugin install $name"
         fi
     done
