@@ -1,12 +1,12 @@
 # agents
 
-Personal skill pack and config shared across AI coding agents. Works with Claude Code, Codex, Opencode, Cursor, and anything else that reads `~/.agents`.
+Personal skill pack and config shared across AI coding agents. Works with Claude Code, pi, and anything else that reads `~/.agents`.
 
 ## What this is
 
 I use multiple AI coding tools and got tired of copying the same skills and instructions between `.claude/`, `.codex/`, and `.cursor/`.
 
-This repo is the single source of truth. Everything lives here. Each agent tool gets a symlink. Change something once, it shows up everywhere.
+This repo is the single source of truth for **personal** content. Vendor skills and commands are managed through each agent's native package/plugin system. Each agent tool gets symlinks to the personal content. Change something once, it shows up everywhere.
 
 ## Setup
 
@@ -20,10 +20,10 @@ bash ~/Dev/agents/setup.sh
 `setup.sh` does three things:
 
 1. Symlinks `~/.agents` to the repo
-2. Clones any missing vendor repos listed in `vendors.conf`
-3. Runs `sync.sh` to wire up symlinks for every agent tool it finds
+2. Runs `sync.sh` to wire up personal symlinks for every agent tool it finds
+3. Runs `vendor-sync.sh` to reconcile vendor plugins/packages with each agent's native system
 
-The script is idempotent. Running it twice does nothing harmful. Existing vendor repos are left untouched during setup reruns.
+The script is idempotent. Running it twice does nothing harmful.
 
 ## Structure
 
@@ -32,76 +32,69 @@ agents/
 ├── AGENTS.md              # Shared instructions all agents follow
 ├── RTK.md                 # Personal reference notes
 ├── setup.sh               # Bootstrap for new machines (idempotent)
-├── sync.sh                # Reconcile symlinks after changes
-├── vendor-update.sh       # Pull latest from upstream vendor repos
+├── sync.sh                # Reconcile personal symlinks after changes
+├── vendor-sync.sh         # Reconcile vendor plugins/packages per agent
 ├── vendors.conf           # Vendor registry (single source of truth)
-├── commands/              # Shared commands (pr, commits)
-├── scripts/
-│   └── lib/vendors.sh     # Shared vendor parsing/path helpers
-├── skills/                # Personal skills (tracked in git)
-│   ├── caveman/
-│   ├── dev-workflow/
-│   ├── documentation/
-│   ├── explain-before-generate/
-│   ├── grill-me/
-│   ├── skill-optimizer/
-│   ├── solid/
-│   └── writer-persona/
-├── tests/
-│   └── vendor-lifecycle.sh
-└── vendor/                # Third-party repos (cloned, not tracked)
-    └── addyosmani-agent-skills/
+├── commands/              # Personal commands (pr, commits)
+└── skills/                # Personal skills (tracked in git)
+    ├── caveman/
+    ├── caveman-help/
+    ├── dev-workflow/
+    ├── documentation/
+    ├── explain-before-generate/
+    ├── grill-me/
+    ├── skill-optimizer/
+    ├── solid/
+    ├── to-prd/
+    └── writer-persona/
 ```
 
 ## Managing vendors
 
-All vendor repos are declared in one file: `vendors.conf`.
+All vendor packages are declared in one file: `vendors.conf`.
 
 ```
-# owner/repo:skillsSubdir
-addyosmani/agent-skills:skills
+# vendor_id:agents:install_spec
+addyosmani/agent-skills:pi:git:github.com/addyosmani/agent-skills
+addyosmani/agent-skills:claude:plugin:agent-skills@addy-agent-skills
 ```
 
-Format is `owner/repo:skillsSubdir`. The repo gets cloned into `vendor/` and each directory inside `skillsSubdir/` is symlinked into `skills/`.
+Format is `vendor_id:agents:install_spec`. Each line declares one vendor for one or more agents. The install spec is agent-native — `git:...` for pi, `plugin:...` for Claude.
 
-`sync.sh` is authoritative for vendored skill symlinks. It will:
+`vendor-sync.sh` is idempotent and safe to run multiple times.
 
-- create missing vendored skill symlinks
-- prune stale vendored skill symlinks by default
-- report orphaned repos under `vendor/`
-- fail hard if two vendors export the same skill name
+- **pi**: Writes desired packages to `~/.pi/agent/settings.json`. pi auto-installs missing packages on startup.
+- **Claude Code**: Reads `~/.claude/plugins/installed_plugins.json` and reports status. Prints exact `/plugin install ...` and `/plugin remove ...` commands for any drift.
 
-To preview sync changes without mutating the filesystem:
+To add a vendor, add lines to `vendors.conf` and run `vendor-sync.sh`.
+
+To remove one, delete the lines and run `vendor-sync.sh`.
+
+To preview changes without mutating anything:
 
 ```bash
-bash sync.sh --dry-run
+bash vendor-sync.sh   # safe; pi settings are idempotent writes
 ```
-
-To add a vendor, add one line to `vendors.conf` and run setup.
-
-```bash
-echo "owner/repo:skills" >> vendors.conf
-bash setup.sh
-```
-
-To remove one, delete the line from `vendors.conf` and run `bash sync.sh`. Stale vendored skill symlinks are pruned automatically. Any leftover repo directory under `vendor/` will be reported as orphaned until you delete it.
 
 ## Updating
 
-Pull vendor changes explicitly, then reconcile symlinks.
-
 ```bash
-bash vendor-update.sh
-bash sync.sh
+# Personal skills and config
+cd ~/Dev/agents && git pull && bash sync.sh
+
+# Vendor plugins/packages
+bash vendor-sync.sh
 ```
 
-`vendor-update.sh` pulls each configured vendor repo with `--ff-only`. `sync.sh` then creates new vendored skill symlinks and removes stale ones. Both scripts are safe to run multiple times.
+For pi vendors, `pi update --extensions` also works after `vendor-sync.sh` has written the package to settings.
+
+For Claude vendors, run `/plugin update <name>` inside a claude session.
 
 ## How it works
 
-Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md` and `skills/`. Codex reads `AGENTS.md` and `skills/`. Opencode reads `AGENTS.md`. Cursor reads `commands/`.
+Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md`, `skills/`, and `commands/`. Codex reads `AGENTS.md` and `skills/`. pi reads `AGENTS.md` and `skills/`.
 
-Instead of duplicating files, `sync.sh` creates symlinks from each tool directory back into this repo. The `commands/` directory is shared across all of them. The skills directory is shared too, with vendor skills symlinked in.
+Instead of duplicating files, `sync.sh` creates symlinks from each tool directory back into this repo.
 
 ```
 ~/.agents/          -> ~/Dev/agents/
@@ -110,8 +103,9 @@ Instead of duplicating files, `sync.sh` creates symlinks from each tool director
 .claude/commands/   -> ~/.agents/commands/
 .codex/AGENTS.md    -> ~/.agents/AGENTS.md
 .codex/skills/      -> ~/.agents/skills/
-.cursor/commands/   -> ~/.agents/commands/pr.md (etc)
 ```
+
+Vendor content lives in agent-native directories (pi packages in `~/.pi/agent/git/`, Claude plugins in `~/.claude/plugins/cache/`), not in this repo.
 
 ## On a new machine
 
@@ -134,7 +128,7 @@ If `~/.agents` already exists as a real directory, setup will refuse to overwrit
 - **grill-me** - Stress-test plans through interrogation
 - **skill-optimizer** - Improve and benchmark skill packs
 - **solid** - SOLID principles and clean code references
+- **to-prd** - Writing PRDs and implementation plans
 - **writer-persona** - Personal voice and tone rules for writing
-- **to-prd** - Writing prds and implementation plan
 
-Vendor skills cover the rest: API design, testing, CI/CD, code review, security, performance, planning, spec-driven development, and more.
+Vendor skills (API design, testing, CI/CD, code review, security, performance, planning, spec-driven development, and more) are installed through `vendor-sync.sh` into each agent's native package/plugin system.

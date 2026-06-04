@@ -1,31 +1,3 @@
-# Vendored skill repos — cloned by setup.sh / managed by sync.sh
-vendor/
-
-# Ignore vendored skill symlinks under skills/ by default.
-# First-party skills are explicitly unignored below.
-skills/*
-!skills/caveman/
-!skills/caveman/**
-!skills/caveman-help/
-!skills/caveman-help/**
-!skills/dev-workflow/
-!skills/dev-workflow/**
-!skills/documentation/
-!skills/documentation/**
-!skills/explain-before-generate/
-!skills/explain-before-generate/**
-!skills/grill-me/
-!skills/grill-me/**
-!skills/skill-optimizer/
-!skills/skill-optimizer/**
-!skills/solid/
-!skills/solid/**
-!skills/writer-persona/
-!skills/writer-persona/**
-!skills/to-prd/
-!skills/to-prd/**
-# Per-agent tool lock files
+skills/.system/
 .skill-lock.json
-
-# macOS
 .DS_Store

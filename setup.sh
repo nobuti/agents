@@ -4,13 +4,11 @@
 #
 # Does three things:
 #   1. Symlinks ~/.agents → this repo
-#   2. Clones vendor repos into vendor/
-#   3. Runs sync.sh to wire everything up to .claude, .codex, .cursor
+#   2. Runs sync.sh to wire up agent configs
+#   3. Runs vendor-sync.sh to reconcile vendor plugins/packages
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck source=./scripts/lib/vendors.sh
-source "$REPO_DIR/scripts/lib/vendors.sh"
 
 # ── 1. Create ~/.agents symlink ───────────────────────────────────────
 if [ -L "$HOME/.agents" ]; then
@@ -32,38 +30,19 @@ else
     printf "\033[32m+\033[0m ~/.agents -> %s\n" "$REPO_DIR"
 fi
 
-# ── 2. Clone vendor repos ─────────────────────────────────────────────
-VENDOR_DIR="$REPO_DIR/vendor"
-VENDOR_CONF="$REPO_DIR/vendors.conf"
-mkdir -p "$VENDOR_DIR"
+echo ""
 
-setup_vendor_repo() {
-    local owner_repo="$1"
-    local skills_subdir="$2"
-    local dest="$3"
-
-    echo "Vendor: $owner_repo"
-
-    if [ -d "$dest/.git" ]; then
-        printf "  \033[90m=\033[0m already cloned\n"
-        return
-    fi
-
-    printf "  \033[32m+\033[0m cloning\n"
-    git clone --quiet "$(vendor_clone_url "$owner_repo")" "$dest"
-}
-
-if [ ! -f "$VENDOR_CONF" ]; then
-    echo "No vendors.conf found, skipping vendor setup."
-else
-    vendor_each_config "$VENDOR_CONF" "$VENDOR_DIR" setup_vendor_repo
-fi
+# ── 2. Run sync.sh ────────────────────────────────────────────────────
+echo "Running sync.sh to wire up agent configs..."
+bash "$REPO_DIR/sync.sh"
 
 echo ""
 
-# ── 3. Run sync.sh ────────────────────────────────────────────────────
-echo "Running sync.sh to wire up agent configs..."
-bash "$REPO_DIR/sync.sh"
+# ── 3. Run vendor-sync.sh ─────────────────────────────────────────────
+if [ -f "$REPO_DIR/vendor-sync.sh" ]; then
+    echo "Running vendor-sync.sh to reconcile vendor plugins..."
+    bash "$REPO_DIR/vendor-sync.sh"
+fi
 
 echo ""
 echo "Done. ~/.agents is ready."
