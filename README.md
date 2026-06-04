@@ -135,5 +135,6 @@ If `~/.agents` already exists as a real directory, setup will refuse to overwrit
 - **skill-optimizer** - Improve and benchmark skill packs
 - **solid** - SOLID principles and clean code references
 - **writer-persona** - Personal voice and tone rules for writing
+- **to-prd** - Writing prds and implementation plan
 
 Vendor skills cover the rest: API design, testing, CI/CD, code review, security, performance, planning, spec-driven development, and more.
