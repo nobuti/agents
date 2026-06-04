@@ -10,7 +10,7 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 ## User Rules
 
 - Do not commit artifacts like plans or specs
-- Use .idea/plans for storing artifacts like specs, plans, etc... at the root of the project
+- Use ~/Omnia/artifacts for storing artifacts like specs, plans, etc... Create a folder with the slug of the feature, then put inside the artifacts.
 - Prefer git branch over worktrees
 - Do not add Co-Authored-By lines to commits
 
@@ -45,9 +45,10 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
   conflict, stop and name the exact inconsistency. Ask for clarification or present the
   tradeoff before proceeding. Do not guess and continue.
 
-- **Prefer simple, surgical changes**: Choose the simplest change that solves the real
-  problem. Avoid speculative abstractions, premature generalization, and unrelated
-  cleanup outside the requested scope.
+- **Fix at the right layer**: Make the smallest change *at the layer that owns the problem*.
+  If the bug is in a shared component, framework, or abstraction, fix it there — not at every call site.
+  "Smallest" means least added complexity, not most local workaround. Avoid speculative
+  abstractions, premature generalization, and unrelated cleanup outside the requested scope.
 
 - **Apply the solid skill to code work**: For any code-touching task, use the `solid`
   skill as the default engineering quality bar alongside the task-specific workflow.
@@ -74,7 +75,8 @@ When a request depends on recency (e.g., "latest", "current", "today", "as of no
 
 ### Editing files
 
-- Make the smallest safe change that solves the issue.
+- Fix the root cause at its proper layer. Prefer framework/library fixes over local workarounds.
+- Keep diffs small and reviewable, but don't let "small" mean "shifts burden to callers."
 - Preserve existing style and conventions.
 - Prefer patch-style edits (small, reviewable diffs) over full-file rewrites.
 - After making changes, run the project’s standard checks when feasible (format/lint, unit tests, build/typecheck).
