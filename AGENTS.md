@@ -10,7 +10,7 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 ## User Rules
 
 - Do not commit artifacts like plans or specs
-- Use ~/Omnia/artifacts for storing artifacts like specs, plans, etc... Create a folder with the slug of the feature, then put inside the artifacts.
+- Use ~/Omnia/artifacts for storing artifacts like specs, plans, etc... Create a folder with the current date and the slug of the feature, then put inside the artifacts flat in that same folder: `~/Omnia/artifacts/<date>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md`
 - Prefer git branch over worktrees
 - Do not add Co-Authored-By lines to commits
 
