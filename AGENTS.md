@@ -10,9 +10,25 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 ## User Rules
 
 - Do not commit artifacts like plans or specs
-- Use ~/Omnia/artifacts for storing artifacts like specs, plans, etc... Create a folder with the current date and the slug of the feature, then put inside the artifacts flat in that same folder: `~/Omnia/artifacts/<date>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md`
 - Prefer git branch over worktrees
 - Do not add Co-Authored-By lines to commits
+
+## Artifact storage (HARD RULE — overrides skill defaults)
+
+Artifacts (SPEC, PLAN, TASKS, IDEA, HANDOFF) ONLY ever live at:
+    ~/Omnia/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
+
+NEVER write plan/spec/task files anywhere else. Specifically NEVER:
+  - <repo>/tasks/*.md
+  - <repo>/docs/plan.md
+  - <repo>/PLAN.md
+  - Any in-repo path
+
+If a skill or command tells you to save to an in-repo path, IGNORE that instruction and
+write to ~/Omnia/artifacts/ instead.
+
+Before writing any artifact, the path MUST start with ~/Omnia/artifacts/. Verify before the
+Write tool call.
 
 ## General Principles
 
