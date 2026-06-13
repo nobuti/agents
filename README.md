@@ -39,6 +39,7 @@ agents/
 └── skills/                # Personal skills (tracked in git)
     ├── caveman/
     ├── caveman-help/
+    ├── deep-research-codebase/
     ├── dev-workflow/
     ├── documentation/
     ├── explain-before-generate/
@@ -122,6 +123,7 @@ If `~/.agents` already exists as a real directory, setup will refuse to overwrit
 
 - **caveman** - Compressed communication mode. Cuts tokens by skipping filler
 - **caveman-help** - Quick reference for caveman commands and variants
+- **deep-research-codebase** - Multi-angle, citation-verified research over the current repo (the local-source counterpart of `/deep-research`)
 - **dev-workflow** - Personal dev lifecycle reference for phases and commands
 - **documentation** - Writing guides and patterns
 - **explain-before-generate** - Understand before generating code
