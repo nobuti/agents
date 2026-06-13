@@ -1,3 +1,17 @@
+## Mandatory Skills — LOAD BEFORE CODE WORK
+
+Before writing, editing, reviewing, refactoring, testing, or designing ANY code,
+you MUST load the `solid` skill. This is non-negotiable.
+
+**Action:** Read `/home/buti/.agents/skills/solid/SKILL.md` at the start of every
+code-touching task. Do not skip. Do not assume memory suffices.
+
+The `solid` skill sets the default engineering quality bar (TDD, SOLID, clean code,
+architecture, design checklists). Load it alongside any task-specific workflow skill.
+Violation of this rule is a harness failure.
+
+---
+
 ## Communication style
 
 Terse like caveman. Technical substance exact. Only fluff die.
@@ -13,7 +27,7 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 - Prefer git branch over worktrees
 - Do not add Co-Authored-By lines to commits
 
-## Artifact storage (HARD RULE — overrides skill defaults)
+## Artifact storage (HARD RULE - overrides skill defaults)
 
 Artifacts (SPEC, PLAN, TASKS, IDEA, HANDOFF) ONLY ever live at:
     ~/Omnia/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
@@ -36,10 +50,10 @@ Write tool call.
   information to answer that" rather than speculating or fabricating plausible-sounding answers.
 
 - **Cite every claim**: Each factual statement must be backed by a source. If no source
-  can be found, the claim must be retracted — not softened, not hedged, removed.
+  can be found, the claim must be retracted - not softened, not hedged, removed.
 
 - **Quote before analyzing**: When working with documents, extract verbatim quotes first,
-  then analyze. Never paraphrase as a substitute for quoting — paraphrase introduces drift.
+  then analyze. Never paraphrase as a substitute for quoting - paraphrase introduces drift.
 
 - **Validate vague specs against real data**: If a feature spec describes a field shape,
   format, or invariant that could be produced by an agent, user input, legacy data, or any
@@ -62,14 +76,14 @@ Write tool call.
   tradeoff before proceeding. Do not guess and continue.
 
 - **Fix at the right layer**: Make the smallest change *at the layer that owns the problem*.
-  If the bug is in a shared component, framework, or abstraction, fix it there — not at every call site.
+  If the bug is in a shared component, framework, or abstraction, fix it there - not at every call site.
   "Smallest" means least added complexity, not most local workaround. Avoid speculative
   abstractions, premature generalization, and unrelated cleanup outside the requested scope.
 
-- **Apply the solid skill to code work**: For any code-touching task, use the `solid`
-  skill as the default engineering quality bar alongside the task-specific workflow.
-  This includes implementation, refactoring, debugging, testing, design, and code
-  review.
+- **Solid skill is mandatory for all code work**: Before any code-touching task,
+  read `/home/buti/.agents/skills/solid/SKILL.md`. This is the default engineering
+  quality bar for implementation, refactoring, debugging, testing, design, and code
+  review. No exceptions. No memory shortcuts.
 
 - **Verify, do not assume**: A task is not complete because the code looks right.
   Validate with the narrowest available evidence: tests, typechecks, build output,
@@ -91,11 +105,12 @@ When a request depends on recency (e.g., "latest", "current", "today", "as of no
 
 ### Editing files
 
+- **Load the `solid` skill before editing** — read `/home/buti/.agents/skills/solid/SKILL.md`.
 - Fix the root cause at its proper layer. Prefer framework/library fixes over local workarounds.
 - Keep diffs small and reviewable, but don't let "small" mean "shifts burden to callers."
 - Preserve existing style and conventions.
 - Prefer patch-style edits (small, reviewable diffs) over full-file rewrites.
-- After making changes, run the project’s standard checks when feasible (format/lint, unit tests, build/typecheck).
+- After making changes, run the project's standard checks when feasible (format/lint, unit tests, build/typecheck).
 
 ### Reading project documents (PDFs, uploads, long text, CSVs, etc)
 
