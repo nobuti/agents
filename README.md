@@ -20,7 +20,7 @@ bash ~/Dev/agents/setup.sh
 `setup.sh` does three things:
 
 1. Symlinks `~/.agents` to the repo
-2. Runs `sync.sh` to wire up personal symlinks for every agent tool it finds
+2. Runs `sync.sh` to wire up personal symlinks for every agent tool it finds, including pi extensions
 3. Runs `vendor-sync.sh` to reconcile vendor plugins/packages with each agent's native system
 
 The script is idempotent. Running it twice does nothing harmful.
@@ -36,6 +36,7 @@ agents/
 ├── vendor-sync.sh         # Reconcile vendor plugins/packages per agent
 ├── vendors.conf           # Vendor registry (single source of truth)
 ├── commands/              # Personal commands (pr, commits)
+├── pi-extensions/         # Personal pi extensions (tracked in git)
 └── skills/                # Personal skills (tracked in git)
     ├── caveman/
     ├── caveman-help/
@@ -93,20 +94,21 @@ For Claude vendors, run `/plugin update <name>` inside a claude session.
 
 ## How it works
 
-Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md`, `skills/`, and `commands/`. Codex reads `AGENTS.md` and `skills/`. pi reads `AGENTS.md` and `skills/`.
+Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md`, `skills/`, and `commands/`. Codex reads `AGENTS.md` and `skills/`. pi reads `AGENTS.md`, `skills/`, and extensions from `~/.pi/agent/extensions/`.
 
 Instead of duplicating files, `sync.sh` creates symlinks from each tool directory back into this repo.
 
 ```
-~/.agents/          -> ~/Dev/agents/
-.claude/CLAUDE.md   -> ~/.agents/AGENTS.md
-.claude/skills/     -> ~/.agents/skills/
-.claude/commands/   -> ~/.agents/commands/
-.codex/AGENTS.md    -> ~/.agents/AGENTS.md
-.codex/skills/      -> ~/.agents/skills/
+~/.agents/                          -> ~/Dev/agents/
+.claude/CLAUDE.md                   -> ~/.agents/AGENTS.md
+.claude/skills/                     -> ~/.agents/skills/
+.claude/commands/                   -> ~/.agents/commands/
+.codex/AGENTS.md                    -> ~/.agents/AGENTS.md
+.codex/skills/                      -> ~/.agents/skills/
+~/.pi/agent/extensions/<name>/      -> ~/.agents/pi-extensions/<name>/
 ```
 
-Vendor content lives in agent-native directories (pi packages in `~/.pi/agent/git/`, Claude plugins in `~/.claude/plugins/cache/`), not in this repo.
+Vendor content lives in agent-native directories (pi packages in `~/.pi/agent/git/` or `~/.pi/agent/npm/`, Claude plugins in `~/.claude/plugins/cache/`), not in this repo. Personal pi extensions stay in this repo and are symlinked into `~/.pi/agent/extensions/` by `sync.sh`.
 
 ## On a new machine
 
