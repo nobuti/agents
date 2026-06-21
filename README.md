@@ -45,6 +45,7 @@ agents/
     ├── documentation/
     ├── explain-before-generate/
     ├── grill-me/
+    ├── scope-xray/
     ├── skill-optimizer/
     ├── solid/
     ├── to-prd/
@@ -130,6 +131,7 @@ If `~/.agents` already exists as a real directory, setup will refuse to overwrit
 - **documentation** - Writing guides and patterns
 - **explain-before-generate** - Understand before generating code
 - **grill-me** - Stress-test plans through interrogation
+- **scope-xray** - Pre-implementation scope forecast: renders a radiographic X-ray of SPEC+TASKS (blast radius, dependency shape, PR-boundary plan) so you cut PRs before coding
 - **skill-optimizer** - Improve and benchmark skill packs
 - **solid** - SOLID principles and clean code references
 - **to-prd** - Writing PRDs and implementation plans
