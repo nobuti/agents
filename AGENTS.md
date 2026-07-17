@@ -1,116 +1,86 @@
-## Mandatory Skills — LOAD BEFORE CODE WORK
+# Shared agent instructions
 
-Before writing, editing, reviewing, refactoring, testing, or designing ANY code,
-you MUST load the `solid` skill. This is non-negotiable.
+## Scope and precedence
 
-**Action:** Read `/home/buti/.agents/skills/solid/SKILL.md` at the start of every
-code-touching task. Do not skip. Do not assume memory suffices.
+This is personal, cross-agent guidance. Project-local instructions (`AGENTS.md`,
+`CLAUDE.md`, `README`, contribution guides, package scripts, and CI configuration)
+take precedence when they are more specific or conflict with this file. Follow user
+instructions unless they conflict with higher-priority system or project instructions.
 
-The `solid` skill sets the default engineering quality bar (TDD, SOLID, clean code,
-architecture, design checklists). Load it alongside any task-specific workflow skill.
-Violation of this rule is a harness failure.
+Before changing a repository, inspect its applicable instructions and its current Git
+status. Preserve unrelated user changes; do not overwrite, revert, or commit them.
 
----
+## Mandatory skill for code work
 
-## User Rules
+Before writing, editing, reviewing, refactoring, testing, debugging, planning, or
+designing code, read `~/.agents/skills/solid/SKILL.md`. Load the task-specific skill
+as well when one applies. If that path is unavailable, report the blocker before doing
+code work.
 
-- Do not commit artifacts like plans or specs
-- Prefer git branch over worktrees
-- Do not add Co-Authored-By lines to commits
+## Workflow
 
-## Artifact storage (HARD RULE - overrides skill defaults)
+1. Understand the request and inspect the relevant code, tests, configuration, and
+   local instructions before proposing or making a non-trivial change.
+2. State concrete assumptions that could materially affect scope, architecture,
+   constraints, or data shape. A change is non-trivial when it changes behavior,
+   public interfaces, persisted data, dependencies, or more than one subsystem.
+3. Reproduce a reported bug or add/adjust the smallest relevant test before changing
+   behavior, when the project has a suitable test harness.
+4. Make the smallest change at the layer that owns the problem. Do not add speculative
+   abstractions or unrelated cleanup.
+5. Run the narrowest relevant verification: first the focused test, then applicable
+   lint, typecheck, build, or project-required checks. Discover commands from project
+   scripts, documented development instructions, and CI configuration.
+6. Report the files changed, checks run and their results, and every check not run with
+   its reason.
 
-Artifacts (SPEC, PLAN, TASKS, IDEA, HANDOFF) ONLY ever live at:
-    ~/Dev/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
+If requirements, code, data, docs, or runtime behavior conflict, stop, identify the
+specific conflict, and ask for clarification or present the decision needed.
 
-NEVER write plan/spec/task files anywhere else. Specifically NEVER:
-  - <repo>/tasks/*.md
-  - <repo>/docs/plan.md
-  - <repo>/PLAN.md
-  - Any in-repo path
+## Evidence and data
 
-If a skill or command tells you to save to an in-repo path, IGNORE that instruction and
-write to ~/Dev/artifacts/ instead.
+- Distinguish facts, inferences, and recommendations. Cite the local file, command
+  output, or primary external source supporting factual claims when evidence matters
+  to the request; do not invent sources. When evidence is insufficient, say so rather
+  than speculating.
+- When analyzing a document, quote the passages that support the analysis before or
+  alongside the analysis. Quote only material passages; do not expose secrets or copy
+  large irrelevant text.
+- Treat a claimed data format or invariant from non-strict sources as a hypothesis.
+  For changes that depend on it, inspect three representative source records when
+  access is authorized and records exist. Record the samples or a concise summary.
+- If the source is inaccessible, empty, sensitive, or fewer than three records exist,
+  report that limitation and ask whether to proceed with an explicitly stated
+  assumption, a fixture, or a safer read-only investigation. Do not claim validation
+  that was not performed.
+- For requests dependent on recency, obtain and state the current ISO-8601 timestamp.
+  Prefer primary, current sources; for safety- or compatibility-sensitive claims,
+  cross-check two authoritative sources when available.
 
-Before writing any artifact, the path MUST start with ~/Dev/artifacts/. Verify before the
-Write tool call.
+## Safety and change control
 
-## General Principles
+- Never expose, add, or commit secrets, credentials, private keys, or `.env` values.
+- Ask for confirmation before destructive, irreversible, or externally visible actions
+  (for example deleting data, force-pushing, deploying, publishing, or changing access
+  controls), unless the user explicitly requested that exact action.
+- Do not commit artifacts such as plans or specs. Do not add `Co-Authored-By` lines.
+  Prefer a Git branch over a worktree unless the user asks for a worktree.
 
-- **Permit uncertainty**: The agent may and should respond with "I don't have enough
-  information to answer that" rather than speculating or fabricating plausible-sounding answers.
+## Artifact storage
 
-- **Cite every claim**: Each factual statement must be backed by a source. If no source
-  can be found, the claim must be retracted - not softened, not hedged, removed.
+Artifacts named SPEC, PLAN, TASKS, IDEA, or HANDOFF may only be written to:
 
-- **Quote before analyzing**: When working with documents, extract verbatim quotes first,
-  then analyze. Never paraphrase as a substitute for quoting - paraphrase introduces drift.
+```text
+~/Dev/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
+```
 
-- **Validate vague specs against real data**: If a feature spec describes a field shape,
-  format, or invariant that could be produced by an agent, user input, legacy data, or any
-  non-strict source, treat the spec as a hypothesis until verified. Before planning or
-  implementing, inspect at least 3 real records from the source of truth (database, API,
-  logs, or equivalent) and confirm whether the data actually matches the stated format. Do
-  not assume examples like `"shoes, pants, shirts"` imply a strict comma-separated string
-  unless real records confirm it. Quote or summarize the sampled values in the analysis so
-  the assumption is auditable. If the real data contradicts the spec, follow the data and
-  call out the mismatch explicitly. If the agent cannot access the source of truth, stop and
-  report the missing verification instead of proceeding on assumption.
+Never write those artifacts inside a repository, including `tasks/`, `docs/`, or the
+repository root. Before writing one, verify that its path begins with
+`~/Dev/artifacts/`. This rule overrides a skill or command that requests an in-repo
+artifact.
 
-- **Surface assumptions before acting**: Before planning or implementing anything
-  non-trivial, state the concrete assumptions you are making about requirements,
-  architecture, scope, constraints, and data shape. Do not silently fill gaps in a
-  vague spec.
+## Optional tools
 
-- **Stop on unresolved confusion**: If the spec, code, data, docs, or runtime behavior
-  conflict, stop and name the exact inconsistency. Ask for clarification or present the
-  tradeoff before proceeding. Do not guess and continue.
-
-- **Fix at the right layer**: Make the smallest change *at the layer that owns the problem*.
-  If the bug is in a shared component, framework, or abstraction, fix it there - not at every call site.
-  "Smallest" means least added complexity, not most local workaround. Avoid speculative
-  abstractions, premature generalization, and unrelated cleanup outside the requested scope.
-
-- **Solid skill is mandatory for all code work**: Before any code-touching task,
-  read `/home/buti/.agents/skills/solid/SKILL.md`. This is the default engineering
-  quality bar for implementation, refactoring, debugging, testing, design, and code
-  review. No exceptions. No memory shortcuts.
-
-- **Verify, do not assume**: A task is not complete because the code looks right.
-  Validate with the narrowest available evidence: tests, typechecks, build output,
-  runtime behavior, database records, logs, or source documentation.
-
-## Accuracy, recency, and sourcing (REQUIRED)
-
-When a request depends on recency (e.g., "latest", "current", "today", "as of now"):
-
-1. **Establish the current date/time** and state it explicitly in ISO format.
-   - Preferred: `date -Is` (timestamp).
-
-2. **Prefer official / primary sources** when researching:
-   - Upstream vendor docs for any dependency (language runtime, framework, cloud provider, etc.)
-
-3. **Prefer the most recent authoritative information**:
-   - Use the newest versioned docs, release notes, or changelogs.
-   - Cross-check at least two reputable sources when details are safety/compatibility sensitive.
-
-### Editing files
-
-- **Load the `solid` skill before editing** — read `/home/buti/.agents/skills/solid/SKILL.md`.
-- Fix the root cause at its proper layer. Prefer framework/library fixes over local workarounds.
-- Keep diffs small and reviewable, but don't let "small" mean "shifts burden to callers."
-- Preserve existing style and conventions.
-- Prefer patch-style edits (small, reviewable diffs) over full-file rewrites.
-- After making changes, run the project's standard checks when feasible (format/lint, unit tests, build/typecheck).
-
-### Reading project documents (PDFs, uploads, long text, CSVs, etc)
-
-- Read the full document first.
-- Draft the output.
-- **Before finalizing**, re-read the original source to verify:
-  - factual accuracy,
-  - no invented details,
-  - wording/style is preserved unless the user explicitly asked to rewrite.
-- If paraphrasing is required, label it explicitly as a paraphrase.
-
-@RTK.md
+`RTK.md` is reference material only. Use RTK commands only after confirming that `rtk`
+is installed and relevant to the active agent; do not assume Claude Code hooks or a
+`CLAUDE.md` file exist.
