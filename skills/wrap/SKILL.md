@@ -1,6 +1,6 @@
 ---
 name: wrap
-description: Create a structured handoff document so a fresh agent can continue the work. Saves to ~/Omnia/artifacts/<date>-<slug>/HANDOFF.md.
+description: Create a structured handoff document so a fresh agent can continue the work. Saves to ~/Dev/artifacts/<date>-<slug>/HANDOFF.md.
 argument-hint: "<slug> — short kebab-case name for this handoff"
 ---
 
@@ -12,7 +12,7 @@ If the user passed a slug argument, use it. If not, ask: "What slug for this han
 
 Compute the artifact directory:
 ```
-~/Omnia/artifacts/$(date +%Y-%m-%d)-<slug>/
+~/Dev/artifacts/$(date +%Y-%m-%d)-<slug>/
 ```
 
 Create the directory if it doesn't exist. The target file is `HANDOFF.md` inside it.
@@ -21,10 +21,10 @@ If a HANDOFF.md already exists at that path, warn the user and ask whether to ov
 
 ## 2. Scan for related artifacts
 
-Before writing, scan `~/Omnia/artifacts/` for nearby artifacts matching the slug prefix or date:
+Before writing, scan `~/Dev/artifacts/` for nearby artifacts matching the slug prefix or date:
 
 ```bash
-ls ~/Omnia/artifacts/<date>-<slug>/ 2>/dev/null
+ls ~/Dev/artifacts/<date>-<slug>/ 2>/dev/null
 ```
 
 Note any existing SPEC.md, PLAN.md, TASKS.md, or IDEA.md files. Reference them by path in the handoff — do not duplicate their content.
@@ -99,4 +99,4 @@ Use this template. Replace bracketed placeholders. Keep sections concise — thi
 
 ## 6. Suggest next action
 
-After saving, tell the user the handoff is ready. Suggest: "Start next session with `pi` and mention `/handoff <slug>` or `@~/Omnia/artifacts/<date>-<slug>/HANDOFF.md` to load it."
+After saving, tell the user the handoff is ready. Suggest: "Start next session with `pi` and mention `/handoff <slug>` or `@~/Dev/artifacts/<date>-<slug>/HANDOFF.md` to load it."
