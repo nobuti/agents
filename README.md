@@ -6,7 +6,7 @@ Personal skill pack and config shared across AI coding agents. Works with Claude
 
 I use multiple AI coding tools and got tired of copying the same skills and instructions between `.claude/`, `.codex/`, and `.cursor/`.
 
-This repo is the single source of truth for **personal** content. Vendor skills and commands are managed through each agent's native package/plugin system. Each agent tool gets symlinks to the personal content. Change something once, it shows up everywhere.
+This repo is the single source of truth for **personal** content. Each agent tool gets symlinks to that content. Change something once, it shows up everywhere.
 
 ## Setup
 
@@ -17,11 +17,10 @@ git clone https://github.com/nobuti/agents.git ~/Dev/agents
 bash ~/Dev/agents/setup.sh
 ```
 
-`setup.sh` does three things:
+`setup.sh` does two things:
 
 1. Symlinks `~/.agents` to the repo
-2. Runs `sync.sh` to wire up personal symlinks for every agent tool it finds, including pi extensions
-3. Runs `vendor-sync.sh` to reconcile vendor plugins/packages with each agent's native system
+2. Runs `sync.sh` to wire up personal symlinks for every agent tool it finds
 
 The script is idempotent. Running it twice does nothing harmful.
 
@@ -33,10 +32,7 @@ agents/
 ├── RTK.md                 # Personal reference notes
 ├── setup.sh               # Bootstrap for new machines (idempotent)
 ├── sync.sh                # Reconcile personal symlinks after changes
-├── vendor-sync.sh         # Reconcile vendor plugins/packages per agent
-├── vendors.conf           # Vendor registry (single source of truth)
 ├── commands/              # Personal commands (pr, commits)
-├── pi-extensions/         # Personal pi extensions (tracked in git)
 └── skills/                # Personal skills (tracked in git)
     ├── caveman/
     ├── caveman-help/
@@ -52,32 +48,25 @@ agents/
     └── writer-persona/
 ```
 
-## Managing vendors
+## Managing external skills
 
-All vendor packages are declared in one file: `vendors.conf`.
-
-```
-# vendor_id:agents:install_spec
-addyosmani/agent-skills:pi:git:github.com/addyosmani/agent-skills
-addyosmani/agent-skills:claude:plugin:agent-skills@addy-agent-skills
-```
-
-Format is `vendor_id:agents:install_spec`. Each line declares one vendor for one or more agents. The install spec is agent-native — `git:...` for pi, `plugin:...` for Claude.
-
-`vendor-sync.sh` is idempotent and safe to run multiple times.
-
-- **pi**: Writes desired packages to `~/.pi/agent/settings.json`. pi auto-installs missing packages on startup.
-- **Claude Code**: Reads `~/.claude/plugins/installed_plugins.json` and reports status. Prints exact `/plugin install ...` and `/plugin remove ...` commands for any drift.
-
-To add a vendor, add lines to `vendors.conf` and run `vendor-sync.sh`.
-
-To remove one, delete the lines and run `vendor-sync.sh`.
-
-To preview changes without mutating anything:
+External skills are managed directly with the [Vercel Skills CLI](https://github.com/vercel-labs/skills), not by this repository. Discover and install only the skills and agents you need:
 
 ```bash
-bash vendor-sync.sh   # safe; pi settings are idempotent writes
+# Discover skills and inspect a source before installing
+npx skills find <query>
+npx skills add vercel-labs/agent-skills --list
+
+# Install selected skills globally for specific agents
+npx skills add vercel-labs/agent-skills --global --agent claude-code --agent codex --agent pi
+
+# Inspect, update, or remove globally installed skills
+npx skills list --global
+npx skills update --global
+npx skills remove --global <skill-name>
 ```
+
+The CLI uses `~/.agents/skills` as its global canonical skill directory. After this repository is linked there, review `git status` before committing installed external skills. Do not add a vendor registry or a synchronization script here.
 
 ## Updating
 
@@ -85,17 +74,13 @@ bash vendor-sync.sh   # safe; pi settings are idempotent writes
 # Personal skills and config
 cd ~/Dev/agents && git pull && bash sync.sh
 
-# Vendor plugins/packages
-bash vendor-sync.sh
+# External skills managed by the Vercel Skills CLI
+npx skills update --global
 ```
-
-For pi vendors, `pi update --extensions` also works after `vendor-sync.sh` has written the package to settings.
-
-For Claude vendors, run `/plugin update <name>` inside a claude session.
 
 ## How it works
 
-Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md`, `skills/`, and `commands/`. Codex reads `AGENTS.md` and `skills/`. pi reads `AGENTS.md`, `skills/`, and extensions from `~/.pi/agent/extensions/`.
+Each agent tool has its own config directory with specific file expectations. Claude Code reads `CLAUDE.md`, `skills/`, and `commands/`. Codex reads `AGENTS.md` and `skills/`. pi reads `AGENTS.md` and `skills/`.
 
 Instead of duplicating files, `sync.sh` creates symlinks from each tool directory back into this repo.
 
@@ -106,10 +91,9 @@ Instead of duplicating files, `sync.sh` creates symlinks from each tool director
 .claude/commands/                   -> ~/.agents/commands/
 .codex/AGENTS.md                    -> ~/.agents/AGENTS.md
 .codex/skills/                      -> ~/.agents/skills/
-~/.pi/agent/extensions/<name>/      -> ~/.agents/pi-extensions/<name>/
 ```
 
-Vendor content lives in agent-native directories (pi packages in `~/.pi/agent/git/` or `~/.pi/agent/npm/`, Claude plugins in `~/.claude/plugins/cache/`), not in this repo. Personal pi extensions stay in this repo and are symlinked into `~/.pi/agent/extensions/` by `sync.sh`.
+External skills are installed and updated by the Vercel Skills CLI. This repository neither configures agent package registries nor synchronizes third-party plugins.
 
 ## On a new machine
 
@@ -137,4 +121,4 @@ If `~/.agents` already exists as a real directory, setup will refuse to overwrit
 - **to-prd** - Writing PRDs and implementation plans
 - **writer-persona** - Personal voice and tone rules for writing
 
-Vendor skills (API design, testing, CI/CD, code review, security, performance, planning, spec-driven development, and more) are installed through `vendor-sync.sh` into each agent's native package/plugin system.
+Discover additional skills with `npx skills find <query>` and manage them with the Vercel Skills CLI.

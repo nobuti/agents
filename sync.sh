@@ -9,12 +9,9 @@ AGENTS_DIR="${AGENTS_DIR:-$HOME/.agents}"
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
 CODEX_DIR="${CODEX_DIR:-$HOME/.codex}"
 CURSOR_DIR="${CURSOR_DIR:-$HOME/.cursor}"
-PI_DIR="${PI_DIR:-$HOME/.pi/agent}"
-
 AGENTS_MD="$AGENTS_DIR/AGENTS.md"
 COMMANDS_DIR="$AGENTS_DIR/commands"
 SKILLS_DIR="$AGENTS_DIR/skills"
-PI_EXTENSIONS_DIR="$AGENTS_DIR/pi-extensions"
 
 DRY_RUN=0
 for arg in "$@"; do
@@ -62,19 +59,6 @@ create_symlink() {
         return
     fi
     ln -s "$target" "$link_path"
-}
-
-ensure_dir() {
-    local dir="$1"
-    if [ -d "$dir" ]; then
-        return
-    fi
-    if [ "$DRY_RUN" -eq 1 ]; then
-        log DRYRUN "mkdir -p $dir"
-        return
-    fi
-    mkdir -p "$dir"
-    log CREATED "$dir/"
 }
 
 ensure_symlink() {
@@ -192,18 +176,6 @@ if [ -d "$CURSOR_DIR" ]; then
             ensure_symlink "$cmd_path" "$CURSOR_DIR/commands/$cmd_name"
         done
     fi
-fi
-
-# pi
-if [ -d "$PI_EXTENSIONS_DIR" ]; then
-    echo "  pi:"
-    ensure_dir "$PI_DIR/extensions"
-    ext_path=""; ext_name=""
-    for ext_path in "$PI_EXTENSIONS_DIR"/*; do
-        [ -e "$ext_path" ] || continue
-        ext_name="$(basename "$ext_path")"
-        ensure_symlink "$ext_path" "$PI_DIR/extensions/$ext_name"
-    done
 fi
 
 echo ""

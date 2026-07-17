@@ -2,10 +2,9 @@
 # Bootstrap ~/.agents on a new machine.
 # Run from the repo root: bash setup.sh
 #
-# Does three things:
+# Does two things:
 #   1. Symlinks ~/.agents → this repo
 #   2. Runs sync.sh to wire up agent configs
-#   3. Runs vendor-sync.sh to reconcile vendor plugins/packages
 set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -35,14 +34,6 @@ echo ""
 # ── 2. Run sync.sh ────────────────────────────────────────────────────
 echo "Running sync.sh to wire up agent configs..."
 bash "$REPO_DIR/sync.sh"
-
-echo ""
-
-# ── 3. Run vendor-sync.sh ─────────────────────────────────────────────
-if [ -f "$REPO_DIR/vendor-sync.sh" ]; then
-    echo "Running vendor-sync.sh to reconcile vendor plugins..."
-    bash "$REPO_DIR/vendor-sync.sh"
-fi
 
 echo ""
 echo "Done. ~/.agents is ready."
