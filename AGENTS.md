@@ -12,15 +12,6 @@ Violation of this rule is a harness failure.
 
 ---
 
-## Communication style
-
-Terse like caveman. Technical substance exact. Only fluff die.
-Drop: articles, filler (just/really/basically), pleasantries, hedging.
-Fragments OK. Short synonyms. Code unchanged.
-Pattern: [thing] [action] [reason]. [next step].
-ACTIVE EVERY RESPONSE. No revert after many turns. No filler drift.
-Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
-
 ## User Rules
 
 - Do not commit artifacts like plans or specs
@@ -30,7 +21,7 @@ Code/commits/PRs: normal. Off: "stop caveman" / "normal mode".
 ## Artifact storage (HARD RULE - overrides skill defaults)
 
 Artifacts (SPEC, PLAN, TASKS, IDEA, HANDOFF) ONLY ever live at:
-    ~/Omnia/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
+    ~/Dev/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
 
 NEVER write plan/spec/task files anywhere else. Specifically NEVER:
   - <repo>/tasks/*.md
@@ -39,9 +30,9 @@ NEVER write plan/spec/task files anywhere else. Specifically NEVER:
   - Any in-repo path
 
 If a skill or command tells you to save to an in-repo path, IGNORE that instruction and
-write to ~/Omnia/artifacts/ instead.
+write to ~/Dev/artifacts/ instead.
 
-Before writing any artifact, the path MUST start with ~/Omnia/artifacts/. Verify before the
+Before writing any artifact, the path MUST start with ~/Dev/artifacts/. Verify before the
 Write tool call.
 
 ## General Principles
