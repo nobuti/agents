@@ -52,6 +52,15 @@ remove_path() {
     esac
 }
 
+# Remove a broken symlink and log exactly once, in both real and dry-run mode.
+clean_broken_link() {
+    local target="$1"
+    remove_path "$target" file
+    if [ "$DRY_RUN" -eq 0 ]; then
+        log CLEANED "$target (broken symlink)"
+    fi
+}
+
 create_symlink() {
     local target="$1" link_path="$2"
     if [ "$DRY_RUN" -eq 1 ]; then
@@ -99,7 +108,9 @@ cleanup_glob() {
         else
             remove_path "$item" file
         fi
-        log CLEANED "$item"
+        if [ "$DRY_RUN" -eq 0 ]; then
+            log CLEANED "$item"
+        fi
     done
 }
 
@@ -112,8 +123,7 @@ if [ -d "$CLAUDE_DIR" ]; then
     for item in CLAUDE.md commands skills; do
         target="$CLAUDE_DIR/$item"
         if [ -L "$target" ] && [ ! -e "$target" ]; then
-            remove_path "$target" file
-            log CLEANED "$target (broken symlink)"
+            clean_broken_link "$target"
         fi
     done
     cleanup_glob "$CLAUDE_DIR" "CLAUDE.md.backup.*"
@@ -127,13 +137,22 @@ if [ -d "$CODEX_DIR" ]; then
     for item in AGENTS.md skills; do
         target="$CODEX_DIR/$item"
         if [ -L "$target" ] && [ ! -e "$target" ]; then
-            remove_path "$target" file
-            log CLEANED "$target (broken symlink)"
+            clean_broken_link "$target"
         fi
     done
     cleanup_glob "$CODEX_DIR" "AGENTS.md.backup.*"
     cleanup_glob "$CODEX_DIR" "skills.backup.*"
     cleanup_glob "$CODEX_DIR" "config.toml.backup.*"
+fi
+
+if [ -d "$CURSOR_DIR/commands" ]; then
+    echo "  Cursor:"
+    for target in "$CURSOR_DIR"/commands/*.md; do
+        [ -L "$target" ] || continue
+        if [ ! -e "$target" ]; then
+            clean_broken_link "$target"
+        fi
+    done
 fi
 
 echo ""
@@ -146,21 +165,23 @@ echo "Phase 2: Create symlinks"
 if [ -d "$CLAUDE_DIR" ]; then
     echo "  Claude Code:"
     ensure_symlink "$AGENTS_MD" "$CLAUDE_DIR/CLAUDE.md"
-    ensure_symlink "$COMMANDS_DIR" "$CLAUDE_DIR/commands"
+    if [ -d "$COMMANDS_DIR" ]; then
+        ensure_symlink "$COMMANDS_DIR" "$CLAUDE_DIR/commands"
+    fi
     ensure_symlink "$SKILLS_DIR" "$CLAUDE_DIR/skills"
 fi
 
-# Codex
+# Codex (custom prompts live in ~/.codex/prompts)
 if [ -d "$CODEX_DIR" ]; then
     echo "  Codex:"
     ensure_symlink "$AGENTS_MD" "$CODEX_DIR/AGENTS.md"
     ensure_symlink "$SKILLS_DIR" "$CODEX_DIR/skills"
-    if [ -d "$CODEX_DIR/command" ]; then
+    if [ -d "$COMMANDS_DIR" ] && [ -d "$CODEX_DIR/prompts" ]; then
         cmd_path=""; cmd_name=""
         for cmd_path in "$COMMANDS_DIR"/*.md; do
             [ -e "$cmd_path" ] || continue
             cmd_name="$(basename "$cmd_path")"
-            ensure_symlink "$cmd_path" "$CODEX_DIR/command/$cmd_name"
+            ensure_symlink "$cmd_path" "$CODEX_DIR/prompts/$cmd_name"
         done
     fi
 fi
@@ -168,7 +189,7 @@ fi
 # Cursor
 if [ -d "$CURSOR_DIR" ]; then
     echo "  Cursor:"
-    if [ -d "$CURSOR_DIR/commands" ]; then
+    if [ -d "$COMMANDS_DIR" ] && [ -d "$CURSOR_DIR/commands" ]; then
         cmd_path=""; cmd_name=""
         for cmd_path in "$COMMANDS_DIR"/*.md; do
             [ -e "$cmd_path" ] || continue

@@ -1,11 +1,6 @@
----
-name: benchmark-loop
-description: Repeatable process for benchmarking skill behavior across models
-metadata:
-  tags: benchmark, evals, metrics, deltas, models
----
-
 # Benchmark loop
+
+Run the full loop when an eval harness (scenarios, auto graders) is available. When none exists, use the manual smoke checklist at the bottom until one is built.
 
 ## Minimum matrix
 

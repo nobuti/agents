@@ -1,4 +1,0 @@
-interface:
-  display_name: "Explain Before Generate"
-  short_description: "Explain concepts before code"
-  default_prompt: "Use $explain-before-generate to map this unfamiliar system before generating code."

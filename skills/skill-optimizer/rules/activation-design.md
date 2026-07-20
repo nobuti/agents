@@ -1,10 +1,3 @@
----
-name: activation-design
-description: Patterns that increase skill activation and instruction uptake
-metadata:
-  tags: activation, salience, retrieval, instruction-design
----
-
 # Activation design
 
 ## Make triggers explicit

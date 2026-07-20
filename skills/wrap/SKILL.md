@@ -1,7 +1,8 @@
 ---
 name: wrap
-description: Create a structured handoff document so a fresh agent can continue the work. Saves to ~/Dev/artifacts/<date>-<slug>/HANDOFF.md.
+description: Save a structured session handoff to ~/Dev/artifacts/<date>-<slug>/HANDOFF.md so a fresh agent can continue the work.
 argument-hint: "<slug> — short kebab-case name for this handoff"
+disable-model-invocation: true
 ---
 
 When triggered, do the following in order:
@@ -34,7 +35,7 @@ Note any existing SPEC.md, PLAN.md, TASKS.md, or IDEA.md files. Reference them b
 Collect:
 
 - **Git state:** current branch, dirty files (`git status --short`), last 3 commits (`git log --oneline -3`)
-- **Token usage:** current context tokens and percentage (from session footer or `/tokens`)
+- **Token usage:** if the agent exposes it (session footer, `/tokens`, status command), record current context tokens; otherwise write `n/a`.
 - **Session summary:** what was accomplished, what's in progress, what's blocked
 - **Key decisions:** any architectural/design choices made, with rationale
 - **Open questions:** things not yet resolved
@@ -48,7 +49,7 @@ Use this template. Replace bracketed placeholders. Keep sections concise — thi
 
 **Date:** <YYYY-MM-DD>
 **Branch:** `<branch-name>`
-**Context:** <tokens>/<window> (<pct>%)
+**Context:** <tokens>/<window> (<pct>% or n/a)
 
 ## Goal
 [One sentence — what this session tried to accomplish]
@@ -99,4 +100,4 @@ Use this template. Replace bracketed placeholders. Keep sections concise — thi
 
 ## 6. Suggest next action
 
-After saving, tell the user the handoff is ready. Suggest: "Start next session with `pi` and mention `/handoff <slug>` or `@~/Dev/artifacts/<date>-<slug>/HANDOFF.md` to load it."
+After saving, tell the user the handoff is ready. Suggest pointing the next agent at the file, e.g. `@~/Dev/artifacts/<date>-<slug>/HANDOFF.md`.

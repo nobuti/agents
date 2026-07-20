@@ -1,34 +1,13 @@
 ---
 name: solid
-description: Use this skill when writing code, implementing features, refactoring, planning architecture, designing systems, reviewing code, or debugging. This skill transforms junior-level code into senior-engineer quality software through SOLID principles, TDD, clean code practices, and professional software design.
+description: Engineering quality baseline for any code-touching task: writing, refactoring, debugging, reviewing, testing code, or designing architecture. Enforces TDD, SOLID principles, clean code, and minimal changes.
 ---
 
 # Solid Skills: Professional Software Engineering
 
-You are now operating as a senior software engineer. Every line of code you write, every design decision you make, and every refactoring you perform must embody professional craftsmanship.
+This skill focuses on how to execute code work well once the global operating rules in AGENTS.md are active. Treat it as the default engineering quality bar.
 
-This skill assumes the global operating rules in AGENTS.md are already in force:
-permit uncertainty, cite claims, quote before analyzing, validate vague specs against
-real data, surface assumptions, stop on unresolved confusion, prefer simple scoped
-changes, and verify instead of assuming.
-
-This skill focuses specifically on how to execute code work well once those rules are
-active. Treat it as the default engineering quality bar for any task that touches code.
-
-## When This Skill Applies
-
-Use this skill by default for any code-touching task:
-- Writing ANY code (features, fixes, utilities)
-- Refactoring existing code
-- Planning or designing architecture
-- Reviewing code quality
-- Debugging issues
-- Creating tests
-- Making design decisions
-
-This skill is the engineering quality baseline for implementation work. Pair it with
-the task-specific workflow skill rather than treating it as a replacement for planning,
-debugging, testing, or review workflows.
+Pair it with the task-specific workflow skill: systematic-debugging for root-causing bugs, code-review for reviewing diffs. Planning and testing workflows are covered by this skill's own process and references.
 
 ## Core Philosophy
 
@@ -83,12 +62,11 @@ See: [references/solid-principles.md](references/solid-principles.md)
 **Structure:**
 - One level of indentation per method
 - No `else` keyword when possible (early returns)
-- When validating untrusted strings against an object/map, use `Object.hasOwn(...)` (or `Object.prototype.hasOwnProperty.call(...)`) — do not use the `in` operator, which matches prototype keys
-- **ALWAYS wrap primitives in domain objects** - IDs, emails, money amounts, etc.
+- When validating untrusted strings against an object/map in JavaScript/TypeScript, use `Object.hasOwn(...)` (or `Object.prototype.hasOwnProperty.call(...)`) — do not use the `in` operator, which matches prototype keys
+- **Wrap primitives that carry domain meaning** — IDs, emails, money amounts, etc. Don't wrap every primitive: YAGNI applies.
 - First-class collections (wrap arrays in classes)
 - One dot per line (Law of Demeter)
-- Keep entities small (< 50 lines for classes, < 10 for methods)
-- No more than two instance variables per class
+- Keep classes and methods small (see Red Flags for investigation thresholds)
 
 **Value Objects are MANDATORY for:**
 ```typescript
@@ -256,11 +234,13 @@ After the code works:
 4. [ ] Are names still accurate after changes?
 5. [ ] Would a junior understand this in 6 months?
 
-## Red Flags - Stop and Rethink
+## Red Flags - Investigate
+
+These are smells to investigate, not automatic violations. When one appears, ask whether the current design can be simplified before assuming the complexity is justified:
 
 - Writing code without a test
-- Class with more than 2 instance variables
-- Method longer than 10 lines
+- Class with more than 2 instance variables (does the class have one reason to change?)
+- Method longer than 10 lines (can it be composed from smaller intents?)
 - More than one level of indentation
 - Using `else` when early return works
 - Hardcoding values that should be configurable

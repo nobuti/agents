@@ -15,7 +15,7 @@ if [ -L "$HOME/.agents" ]; then
     if [ "$current" = "$REPO_DIR" ]; then
         printf "\033[90m=\033[0m ~/.agents already points to this repo\n"
     else
-        printf "\033[33m-\033[0m ~/.agents -> %s (repointing)\n" "$current"
+        printf "\033[33m-\033[0m ~/.agents -> %s (repointing, previous location left intact)\n" "$current"
         rm "$HOME/.agents"
         ln -s "$REPO_DIR" "$HOME/.agents"
         printf "\033[32m+\033[0m ~/.agents -> %s\n" "$REPO_DIR"
@@ -31,7 +31,17 @@ fi
 
 echo ""
 
-# ── 2. Run sync.sh ────────────────────────────────────────────────────
+# ── 2. Ensure artifacts directory ─────────────────────────────────────
+
+ARTIFACTS_DIR="${ARTIFACTS_DIR:-$HOME/Dev/artifacts}"
+if [ ! -d "$ARTIFACTS_DIR" ]; then
+    mkdir -p "$ARTIFACTS_DIR"
+    printf "\033[32m+\033[0m %s created\n" "$ARTIFACTS_DIR"
+fi
+
+echo ""
+
+# ── 3. Run sync.sh ────────────────────────────────────────────────────
 echo "Running sync.sh to wire up agent configs..."
 bash "$REPO_DIR/sync.sh"
 

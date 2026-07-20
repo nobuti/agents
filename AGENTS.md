@@ -14,8 +14,9 @@ status. Preserve unrelated user changes; do not overwrite, revert, or commit the
 
 Before writing, editing, reviewing, refactoring, testing, debugging, planning, or
 designing code, read `~/.agents/skills/solid/SKILL.md`. Load the task-specific skill
-as well when one applies. If that path is unavailable, report the blocker before doing
-code work.
+as well when one applies: `systematic-debugging` for root-causing bugs,
+`code-review` for reviewing diffs. If that path is unavailable, report the blocker
+before doing code work.
 
 ## Workflow
 
@@ -65,6 +66,8 @@ specific conflict, and ask for clarification or present the decision needed.
   controls), unless the user explicitly requested that exact action.
 - Do not commit artifacts such as plans or specs. Do not add `Co-Authored-By` lines.
   Prefer a Git branch over a worktree unless the user asks for a worktree.
+- Use conventional commits matching repository style: `feat`, `fix`, `chore`,
+  `refactor`, `docs`.
 
 ## Artifact storage
 
@@ -78,6 +81,8 @@ Never write those artifacts inside a repository, including `tasks/`, `docs/`, or
 repository root. Before writing one, verify that its path begins with
 `~/Dev/artifacts/`. This rule overrides a skill or command that requests an in-repo
 artifact.
+
+The `wrap` skill produces HANDOFF artifacts in this directory.
 
 ## Optional tools
 

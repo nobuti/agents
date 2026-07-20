@@ -1,18 +1,19 @@
----
-name: release-gates
-description: Go/no-go checks for shipping skill updates safely
-metadata:
-  tags: release, quality-gates, governance, process
----
-
 # Release gates for skill changes
 
-## Required pass conditions
+## When a benchmark harness is available
 
 - No universal 0% criteria with skill enabled
 - No negative delta on critical scenarios
 - Benchmark run recorded with date, matrix, and deltas
 - Follow-up issues opened for unresolved failures/regressions
+
+## Manual smoke checklist (always applicable)
+
+Before shipping, run the skill on 2–3 representative prompts and check:
+- [ ] Skill fires when expected (matching each trigger branch)
+- [ ] Output format matches the template/spec
+- [ ] No regression in behaviour compared to prior version (diff old vs new output)
+- [ ] Edge cases handled explicitly (empty inputs, invalid args, boundary conditions)
 
 ## Soft pass conditions
 

@@ -1,8 +1,6 @@
 ---
 name: skill-optimizer
-description: "Optimizes AI skills for activation, clarity, and cross-model reliability. Use when creating or editing skill packs, diagnosing weak skill uptake, reducing regressions, tuning instruction salience, improving examples, shrinking context cost, or setting benchmark/release gates for skills. Trigger terms: skill optimization, activation gap, benchmark skill, with/without skill delta, regression, context budget, prompt salience."
-metadata:
-  tags: skills, optimization, benchmarking, activation, regressions, prompt-engineering
+description: Improves skill quality: activation, clarity, context cost, and regression resilience. Use when creating or editing skills, diagnosing weak uptake, fixing regressions, or benchmarking skill behaviour.
 ---
 
 ## When to use

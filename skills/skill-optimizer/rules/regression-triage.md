@@ -1,10 +1,3 @@
----
-name: regression-triage
-description: Diagnose and correct cases where skills reduce model performance
-metadata:
-  tags: regressions, triage, diagnostics, fixes
----
-
 # Regression triage
 
 ## Detect

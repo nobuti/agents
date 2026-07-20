@@ -1,10 +1,3 @@
----
-name: context-budget
-description: Keep skills compact while preserving high-value behavior
-metadata:
-  tags: context, tokens, compression, relevance
----
-
 # Context budget optimization
 
 ## Compression priorities

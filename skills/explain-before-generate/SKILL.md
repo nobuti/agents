@@ -1,6 +1,6 @@
 ---
 name: explain-before-generate
-description: Conceptual inquiry before generation for learning, orientation, and knowledge-gap work. Use when the user is new to a library, framework, API, repository, domain model, architecture, or unfamiliar system; says explain first, help me understand, what am I missing, map this, teach me, before coding, learning mode, or fill knowledge gaps; asks to compare concepts, trace behavior, inspect docs/code, or build a mental model; or requests generation where unexplained concepts, constraints, source evidence, or design choices should be understood first.
+description: Explains concepts before writing code. Use when the user is new to a library, framework, API, repository, or domain; says explain first, help me understand, teach me, or map this at a conceptual level; or when generation would hide a design decision the user should understand first. For citation-backed end-to-end workflow traces with a full report, use deep-research-codebase instead.
 ---
 
 # Explain Before Generate
@@ -13,6 +13,10 @@ Use this skill when the task is learning-shaped:
 - Prompts like "explain first", "help me understand", "what am I missing", "map this", "teach me", "before coding", "learning mode".
 - Requests to inspect docs/code, compare approaches, trace behavior, explain constraints, or build a mental model.
 - Generation request where code would hide an important concept or design choice.
+
+## When to delegate to deep-research-codebase
+
+Use deep-research-codebase when the request asks for a system-wide, citation-backed report with mandatory coverage matrices (end-to-end trace, every initiator, data lifecycle). Use this skill for lightweight understanding: a concept map, a trace, a walkthrough — without the full report apparatus.
 
 ## Non-Negotiables
 

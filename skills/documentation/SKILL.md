@@ -1,8 +1,6 @@
 ---
 name: documentation
-description: "Creates, structures, and reviews technical documentation following the Diátaxis framework (tutorials, how-to guides, reference, and explanation pages). Use when a user needs to write or reorganize docs, structure a tutorial vs. a how-to guide, build reference docs or API documentation, create explanation pages, choose between Diátaxis documentation types, or improve existing documentation structure. Trigger terms include: documentation structure, Diátaxis, tutorials vs how-to guides, organize docs, user guide, reference docs, technical writing."
-metadata:
-  tags: documentation, technical-writing, tutorials, guides, reference, diataxis
+description: Creates, restructures, or reviews technical documentation using the Diátaxis framework (tutorials, how-to guides, reference, explanation). Use when writing docs, READMEs, API references, user guides, or reorganizing existing documentation.
 ---
 
 ## When to use

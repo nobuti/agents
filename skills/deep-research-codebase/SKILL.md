@@ -1,6 +1,6 @@
 ---
 name: deep-research-codebase
-description: Investigates a specified system or workflow in the current codebase and produces a citation-backed mental model. Use for end-to-end flow tracing, architecture mapping, subsystem comprehension, and deep codebase research. Produces mandatory ASCII maps; initiator, data-lifecycle, and adjacent-process coverage; product/customer and failure-impact context; runtime constraints; test coverage; and explicit unknowns. Read-only; works with or without parallel workers.
+description: Investigates how a system or workflow in the current repository works end to end and produces a citation-backed report with mandatory maps and coverage matrices. Use when asked to map, trace, or explain a workflow, subsystem, or architecture in depth (end-to-end trace, every initiator, data lifecycle). Read-only. For conceptual understanding without the full report apparatus, use explain-before-generate instead.
 ---
 
 # Deep Research: Codebase
@@ -12,12 +12,12 @@ A complete workflow trace maps every materially distinct discovered initiation p
 ## Use and boundaries
 
 Use this skill for requests such as:
-- “How does X work end to end?”
-- “Map the Y workflow/system.”
-- “Help me understand this subsystem.”
-- “Research how Z is implemented across this repository.”
+- "How does X work end to end?"
+- "Map the Y workflow/system."
+- "Help me understand this subsystem."
+- "Research how Z is implemented across this repository."
 
-For a single fact answerable with one or two reads, answer directly instead.
+For a single fact answerable with one or two reads, answer directly instead. For a concept-demonstration or architecture walkthrough that does not need the full coverage-matrix report, use explain-before-generate instead of this skill.
 
 Investigate only the current repository unless the user explicitly asks to include external sources. Do not infer behavior from how a framework normally works.
 
@@ -176,6 +176,54 @@ Explain which sibling processes are separate branches versus required downstream
 ```
 
 The **Application and customer context**, **Initiator coverage**, **Data lifecycle**, **Process neighborhood**, and **System map** are mandatory for deep workflow/system questions. Use the portable ASCII diagram above as the required format. Mermaid is optional only when the environment renders it. Every node must cite its source directly or have a numbered legend that does. The map must show every included initiation path before it merges into the shared pipeline and every material downstream handoff after it; do not collapse a UI/onboarding path into a generic “operator” label. Mark unsupported links as `Unknown`; do not omit them to make the flow appear complete. 
+
+## Illustrative example (miniature)
+
+A filled-in fragment for a hypothetical "password reset" trace — showing the expected density, not the depth:
+
+~~~~
+# Codebase research: password reset flow
+Repository: myapp · Package: auth · Revision: abc1234
+Initiation coverage: scoped by user
+
+## Direct answer
+Password reset is triggered by the UI "Forgot?" link (sends email) or the API
+POST /auth/reset (for admins). Both converge on UserService.requestReset in
+auth/service.ts:42, which writes a ResetToken to the `reset_tokens` table,
+emits a "reset.requested" event, and the email job picks it up. Failure: stale
+tokens persist until expiry; no retry path exists (auth/service.ts:56 logs and
+swallows).
+
+## System map
+```
+[Web: user clicks "Forgot?"
+ ui/login.tsx:18] -- POST /api/reset --\
+[API client: admin GUI
+ routes/admin.ts:33]  -- POST /auth/reset ----+--> [UserService.requestReset
+                                                         auth/service.ts:42]
+                                                     |
+                                                     v
+                                [ResetToken: write to reset_tokens
+                                 migrations/002.ts:12] --> [Event: reset.requested
+                                                                      pubsub.ts:8]
+                                                                    |
+                                                                    v
+                                                         [EmailJob.send
+                                                          jobs/email.ts:22]
+```
+
+## Data lifecycle
+| Domain data | Shape                            | Created by             | Persisted    | Read by       | Evidence           |
+|-------------|----------------------------------|------------------------|--------------|---------------|--------------------|
+| ResetToken  | {id, userId, token, expiresAt}   | UserService.requestReset | reset_tokens | EmailJob.send | auth/service.ts:42 |
+
+## Process neighbourhood
+| Relationship         | Process   | Shared boundary       | Effect            | Evidence        |
+|----------------------|-----------|-----------------------|-------------------|-----------------|
+| Downstream consumer  | EmailJob  | reset.requested event | Sends reset email | jobs/email.ts:22 |
+~~~~
+
+This is a fragment to illustrate the format and density, not a complete trace. A real run fills every matrix row and maps every initiation path.
 
 ## Completion check
 
