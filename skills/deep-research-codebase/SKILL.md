@@ -1,110 +1,167 @@
 ---
 name: deep-research-codebase
-description: Investigates how a system or workflow in the current repository works end to end and produces a citation-backed report with mandatory maps and coverage matrices. Use when asked to map, trace, or explain a workflow, subsystem, or architecture in depth (end-to-end trace, every initiator, data lifecycle). Read-only. For conceptual understanding without the full report apparatus, use explain-before-generate instead.
+description: Investigates how a system or workflow in the current repository works. Switches between two modes: a compact concept map (for learning, "explain first", understanding before coding) and a deep trace with a full citation-backed report, mandatory maps, and coverage matrices (for "how does X work end to end"). Read-only. Use when asked to map, trace, explain, or understand a workflow, subsystem, or architecture.
 ---
 
 # Deep Research: Codebase
 
-Build an accurate, end-to-end mental model of a specified part of the current repository. This is investigation only: read, trace, verify, and report; never edit code or propose patches.
+Build an accurate mental model of a specified part of the current repository. This is investigation only: read, trace, verify, and report; never edit code or propose patches.
 
-A complete workflow trace maps every materially distinct discovered initiation path to its shared pipeline and terminal effects, including material decisions and failure paths. Do not substitute a list of files or isolated facts for that trace.
+The skill has two modes. When depth is unclear, default to compact — the user can escalate to a deep trace with "give me the full trace".
 
-## Use and boundaries
+## Two modes
 
-Use this skill for requests such as:
-- "How does X work end to end?"
-- "Map the Y workflow/system."
-- "Help me understand this subsystem."
-- "Research how Z is implemented across this repository."
+### Compact — understand before acting
 
-For a single fact answerable with one or two reads, answer directly instead. For a concept-demonstration or architecture walkthrough that does not need the full coverage-matrix report, use explain-before-generate instead of this skill.
+For learning-shaped tasks: the user is new to a library, framework, API, repository, or domain; says "explain first", "help me understand", "teach me", "what am I missing"; or asks before coding. Also for concept-level questions that don't need every initiator mapped.
+
+Deliver a **Source → Concept → Mental model → Next** response (see Compact mode below). Stay in inquiry mode — do not generate code until understanding is confirmed.
+
+### Deep trace — end-to-end report
+
+For system-wide investigation: "how does X work end to end", "map the Y workflow", "research how Z is implemented". Delivers the full report template with mandatory initiator coverage, data lifecycle, process neighborhood matrices, and ASCII system map.
+
+Use deep trace when the user asks for a trace, a map, or a system explanation at depth, or escalates from compact mode with "give me the full trace".
+
+## Non-negotiables (both modes)
+
+1. **Read-only.** Do not edit files, run mutating commands, or propose implementation patches.
+2. **Evidence first.** Cite every factual claim with `path:line` evidence from this repository. Mark conclusions that combine evidence as **inferred**.
+3. **No invented links.** If a call, data transformation, runtime behavior, or boundary cannot be established, mark it **unknown**.
+4. **Quote source before analysis.** When source material exists, show the exact passage before interpreting it. Keep quotes short.
+5. **Say "I don't have enough information"** when sources do not support an answer. Name the missing source.
+6. **Separate facts from gaps.** Tests, configuration, static source, and observed runtime behavior have different evidentiary strength. State what was not verified.
+7. **Protect scope.** Exclude generated, vendored, and dependency directories unless they are the subject or are required to establish the trace.
 
 Investigate only the current repository unless the user explicitly asks to include external sources. Do not infer behavior from how a framework normally works.
 
-## Non-negotiables
+## Compact mode
 
-1. **Read-only.** Do not edit files, run mutating commands, or propose implementation patches.
-2. **Evidence first.** Cite every factual claim with `path:line` evidence from this repository. Mark conclusions that combine evidence as **inferred** and cite all supporting locations.
-3. **No invented links.** If a call, data transformation, runtime behavior, or boundary cannot be established, mark it **unknown**.
-4. **Discover all initiators before tracing.** Starting from the shared entry point, coordinator, queue/topic, or persisted state transition, search upstream for every materially distinct initiation path in scope. Cover UI actions, API clients/routes, CLI commands, schedulers/crons, event producers/consumers, webhooks, startup hooks, and domain/onboarding flows. Record every candidate in the Initiator coverage matrix before selecting a representative path.
-5. **Identify each initiator.** For each included candidate, establish who or what starts it and how: user/persona and UI action, HTTP/API client, CLI invocation, scheduler/cron, event producer, webhook, startup hook, or another system. Cite the initiating code, trigger boundary, and internal entry point; mark any unproven segment **unknown**.
-6. **Trace data, not just functions.** For every material input, state transition, and output, identify its schema/type, identifiers, owner, transformation, persistence store/table/collection, and known consumers. A workflow that persists data is incomplete without its persistence model and downstream reads.
-7. **Place the workflow in the system.** Establish the application capability and user outcome it serves, its upstream producers, sibling processes sharing the same domain/state, and downstream consumers/handoffs. Do not claim product criticality or customer impact without local evidence; state it as unknown when it cannot be shown.
-8. **Trace the whole path.** Map each distinct initiator to the convergence point, then map the shared path: initiator → trigger → entry → coordination → work/data transformation → state or external boundary → terminal effect. Include material error, retry, and no-op branches when evidence exists.
-9. **Separate facts from gaps.** Tests, configuration, static source, and observed runtime behavior have different evidentiary strength. State what was not verified.
-10. **Protect scope.** Exclude generated, vendored, and dependency directories unless they are the subject or are required to establish the trace.
+### Source order
 
-## Scope and repository baseline
+Use primary sources first:
+
+- Repository: local code, tests, config, docs, commit history when needed.
+- Library/API: official docs, source, type definitions, changelog when version-sensitive.
+- System/domain: internal docs, schemas, runbooks, observed behavior.
+
+If evidence is missing, name the missing source.
+
+### Response shape
+
+Use this order:
+
+1. **Source** — short quote or file/doc reference from the repository.
+2. **Concept** — explanation of what the source means, how it works, its role.
+3. **Mental model** — relationships between concepts, data flow, lifecycle, contracts, invariants, failure modes. Prefer text diagrams, bullet maps, call traces, and small examples over full implementations.
+4. **Next** — smallest useful follow-up: inspect a specific file, verify a claim, ask a targeted question, or implement.
+
+### Generation gate
+
+Before generating substantial code or files, check:
+
+- Does the user understand the relevant concepts, API shape, and constraints?
+- Has source evidence been inspected rather than assumed?
+- Would generation hide an important design choice?
+
+If any answer is yes, stay in inquiry mode and explain first. Switch to code generation only after the user says "now implement it", "generate the patch", "write the code", "make the change", or "I understand, proceed".
+
+### Mode switch vocabulary
+
+Stay in inquiry mode for: "explain first", "help me understand", "what am I missing", "map this", "teach me", "before coding".
+
+Escalate to deep trace when the user says: "give me the full trace", "map everything", "end to end". A compact-mode response ends with "want the deep trace?" when the topic is complex enough to warrant one.
+
+### Compact examples
+
+**Unfamiliar repository:**
+User: "Before coding, help me understand how auth works here."
+
+Response:
+1. Quote auth route, middleware, session config, and tests.
+2. Explain request lifecycle from login to protected route access.
+3. Map key contracts: token/session storage, expiry, refresh, error states.
+4. Give one verification step, such as running the existing auth test.
+5. Do not patch auth until the user asks for implementation.
+
+**Library generation request:**
+User: "Generate a Fastify plugin for this, but I don't know Fastify."
+
+Response:
+1. Quote official plugin-registration docs or local plugin examples.
+2. Explain plugin lifecycle, encapsulation, decoration, and error path.
+3. Show a tiny annotated skeleton only if it clarifies the concept.
+4. Ask whether to generate production code after the concept map is clear.
+
+## Deep trace mode
+
+A complete workflow trace maps every materially distinct discovered initiation path to its shared pipeline and terminal effects, including material decisions and failure paths. Do not substitute a list of files or isolated facts for that trace.
+
+### Additional non-negotiables (deep trace only)
+
+8. **Discover all initiators before tracing.** Starting from the shared entry point, coordinator, queue/topic, or persisted state transition, search upstream for every materially distinct initiation path in scope. Cover UI actions, API clients/routes, CLI commands, schedulers/crons, event producers/consumers, webhooks, startup hooks, and domain/onboarding flows. Record every candidate in the Initiator coverage matrix before selecting a representative path.
+9. **Identify each initiator.** For each included candidate, establish who or what starts it and how. Cite the initiating code, trigger boundary, and internal entry point; mark any unproven segment **unknown**.
+10. **Trace data, not just functions.** For every material input, state transition, and output, identify its schema/type, identifiers, owner, transformation, persistence store/table/collection, and known consumers.
+11. **Place the workflow in the system.** Establish the application capability and user outcome, its upstream producers, sibling processes, and downstream consumers/handoffs. Do not claim product criticality or customer impact without local evidence; state it as unknown.
+12. **Trace the whole path.** Map each distinct initiator to the convergence point, then map the shared path: initiator → trigger → entry → coordination → work/data transformation → state or external boundary → terminal effect. Include material error, retry, and no-op branches when evidence exists.
+
+### Scope and repository baseline
 
 1. Identify the repository root, package/workspace in scope, current revision, and whether unrelated local changes exist.
-2. Restate the target system and requested depth. For a deep workflow request, default to all materially distinct internal initiation paths that converge on the workflow; do not silently narrow to one production path. If the user explicitly limits the scope, list excluded initiators and why.
-3. Define the trace boundary: initiating actor(s), trigger(s), internal entry point(s), convergence point(s), expected terminal effect(s), and relevant runtime contexts (browser/UI, HTTP, job, CLI, event consumer, startup hook, etc.).
-4. Choose 3–6 investigation angles appropriate to the target. Cover all applicable lenses: application/customer context, initiator discovery, entry points, orchestration, data lifecycle and persistence, adjacent processes and consumers, configuration, failure impact, observability, and tests. For each omitted lens, state why it does not apply or is unverified.
+2. Restate the target system and requested depth. Default to all materially distinct internal initiation paths that converge on the workflow; do not silently narrow to one production path. If the user explicitly limits the scope, list excluded initiators and why.
+3. Define the trace boundary: initiating actor(s), trigger(s), internal entry point(s), convergence point(s), expected terminal effect(s), and relevant runtime contexts.
+4. Choose 3–6 investigation angles. Cover all applicable lenses: application/customer context, initiator discovery, entry points, orchestration, data lifecycle and persistence, adjacent processes and consumers, configuration, failure impact, observability, and tests. For each omitted lens, state why.
 
-If a conclusion depends on a claimed data-shape invariant, inspect three representative authorized records when they exist. If fewer records exist or they are inaccessible or sensitive, state that limitation rather than claiming validation.
+If a conclusion depends on a claimed data-shape invariant, inspect three representative authorized records when they exist. If fewer records exist or they are inaccessible or sensitive, state that limitation.
 
-## Investigation method
+### Investigation method
 
-### 1. Inventory and application context
-Locate the owning package, entry points, configuration, schemas/types, database schema/migrations, repository/query code, tests, UI surfaces, jobs/schedulers, event/queue definitions, and relevant documentation. Find evidence of the application capability and user outcome: product copy, UI routes/components, API contracts, domain terminology, and tests. Identify likely generated files and ignore them unless needed.
+#### 1. Inventory and application context
+Locate the owning package, entry points, configuration, schemas/types, database schema/migrations, repository/query code, tests, UI surfaces, jobs/schedulers, event/queue definitions, and relevant documentation. Find evidence of the application capability and user outcome. Identify likely generated files and ignore them.
 
-### 2. Discover initiation paths (coverage gate)
-Before following the shared path, work backward and search broadly for initiation candidates. Search for direct/transitive callers; imports and exports; route clients and form/mutation handlers; queue publishers and consumers; event names/producers; cron/schedule registration; CLI/startup registrations; state transitions; and tests/fixtures that instantiate the workflow.
+#### 2. Discover initiation paths (coverage gate)
+Search upstream for initiation candidates: direct/transitive callers, imports/exports, route clients and form/mutation handlers, queue publishers/consumers, event names/producers, cron/schedule registration, CLI/startup registrations, state transitions, and tests/fixtures that instantiate the workflow.
 
-Build an **Initiator coverage matrix**. A candidate is not resolved merely because another path reaches the same coordinator.
+Build an **Initiator coverage matrix**:
 
 | Initiator/actor | Trigger and boundary | Path to convergence point | Status | Evidence |
 |---|---|---|---|---|
-| <user/system> | <UI action, cron, event, API, etc.> | <calls/publishes/enqueues to shared point> | included / excluded by user scope / unresolved | `<repo-relative-path>:line` |
+| <user/system> | <UI action, cron, event, API> | <calls/publishes/enqueues to shared point> | included / excluded by user scope / unresolved | `<repo-relative-path>:line` |
 
-Every discovered candidate must be **included**, **explicitly excluded by user scope**, or **unresolved** with the search limitation that prevented verification. Do not call the workflow complete while discovered candidates are merely mentioned in Open questions.
+Every discovered candidate must be **included**, **explicitly excluded by user scope**, or **unresolved** with the search limitation that prevented verification.
 
-### 3. Trace initiation and entry
-For every included candidate, establish the actor or system, trigger mechanism, and boundary that accepts it. For UI flows, trace the user action, event handler, client request, and server entry. For scheduled/event-driven flows, trace the scheduler or producer, registration/configuration, consumer, and handler. Trace each path only until it reaches a documented convergence point; then trace the shared path once. If source cannot prove the real-world actor, state the narrowest supported conclusion instead.
+#### 3. Trace initiation and entry
+For every included candidate, establish the actor, trigger mechanism, and boundary. For UI flows, trace user action → event handler → client request → server entry. For scheduled/event-driven flows, trace scheduler/producer → registration → consumer → handler. Trace each path only until it reaches a documented convergence point; then trace the shared path once.
 
-### 4. Trace the shared path
-Follow the actual call or event path from the convergence point through completion. At each hop, capture:
-- component/function and responsibility;
-- input and output contract or transformation;
-- caller/callee or producer/consumer relationship;
-- state mutation, external call, emitted event, observable signal, or returned result.
+#### 4. Trace the shared path
+Follow the call or event path from convergence point through completion. At each hop capture: component/function and responsibility; input/output contract; caller/callee relationship; state mutation, external call, emitted event, or returned result.
 
-### 5. Trace the data lifecycle (coverage gate)
-Build a **Data lifecycle matrix** for the material domain data. Follow data from input through in-memory transformations, state transitions, persistence, and downstream reads. Inspect type/schema definitions, ORM/repository code, migrations/DDL, query code, and consumer code—not only the write call.
+#### 5. Trace the data lifecycle (coverage gate)
+Build a **Data lifecycle matrix** for the material domain data. Follow data from input through transformations, state transitions, persistence, and downstream reads.
 
 | Domain data | Shape/type and identifiers | Created or transformed by | Persisted store/table/collection | Read by / user-visible outcome | Evidence |
 |---|---|---|---|---|---|
-| <e.g. result, status, entity> | <schema/type, IDs, cardinality> | <function/component> | <database and relation> | <consumer/UI/API/job> | `<repo-relative-path>:line` |
+| <result, status, entity> | <schema/type, IDs, cardinality> | <function/component> | <database and relation> | <consumer/UI/API/job> | `<repo-relative-path>:line` |
 
-List every database, cache, queue, file store, or external service that is a material source of truth or observable output. If the code only establishes a write but not its schema or reader, mark that row **incomplete**. Inspect three representative authorized persisted records only when the research makes a data-shape or data-quality claim; otherwise state that the matrix is static-source evidence.
+List every database, cache, queue, file store, or external service that is a material source of truth.
 
-### 6. Map process neighborhood and impact
-Find processes immediately before, alongside, and after the target: upstream producers, sibling workflows sharing domain objects or state, and downstream jobs/readers. Trace their relationship through shared data, events, queues, state transitions, or explicit calls. Then establish customer and operational impact from evidence: which UI/API states expose success/failure, what stale/missing data users receive, whether a retry/recovery path exists, and what capability is blocked or degraded. Do not label a workflow “core,” “primary,” or “critical” based on intuition; explain the strongest source-supported impact instead.
+#### 6. Map process neighborhood and impact
+Find processes before, alongside, and after the target. Trace their relationship through shared data, events, queues, state transitions, or explicit calls. Establish customer and operational impact from evidence.
 
-### 7. Trace meaningful alternatives
-Trace only branches material to the requested workflow: validation failures, retries, fallback providers, empty/no-op outcomes, asynchronous handoffs, authorization gates, and terminal errors.
+#### 7. Trace meaningful alternatives
+Trace material branches: validation failures, retries, fallback providers, empty/no-op outcomes, asynchronous handoffs, authorization gates, and terminal errors.
 
-### 8. Establish runtime context
-Inspect configuration, feature flags, environment coupling, dependency injection, observability, and tests. Distinguish static reachability from behavior that requires a running service or unavailable infrastructure.
+#### 8. Establish runtime context
+Inspect configuration, feature flags, environment coupling, dependency injection, observability, and tests.
 
-### 9. Verify and synthesize
-Re-open the sources supporting the final path. Reject or qualify a claim when its citation does not actually support it. Merge duplicate findings into a coherent explanation rather than repeating file summaries.
+#### 9. Verify and synthesize
+Re-open the sources supporting the final path. Reject or qualify a claim when its citation does not actually support it.
 
-## Parallel work is optional
+### Parallel work (optional)
 
-Use the strongest available read-only capability. The skill must succeed with a single investigator.
+The skill must succeed with a single investigator. If reliable isolated workers are available, they may investigate independent discovery angles in parallel. Default to sequential investigation; use at most 2–3 concurrent workers. Useful partitions: (1) reverse call graph, routes, queues, events, all initiators; (2) domain types, persistence schemas, writes, downstream readers; (3) UI/product context, state visibility, sibling workflows, downstream jobs. Treat worker output as leads, not final evidence.
 
-If reliable isolated workers are available, they may investigate independent discovery angles in parallel. Do not require a specific worker type, tool, command, or orchestration API.
-
-- Default to sequential investigation.
-- Use at most 2–3 concurrent workers unless the environment exposes a lower safe limit.
-- For deep requests, use available workers first for bounded **coverage discovery**, not independent summaries of the same shared path. Useful partitions are: (1) reverse call graph, routes, queues, events, and all initiators; (2) domain types, persistence schemas, writes, and downstream readers; (3) UI/product context, state visibility, sibling workflows, and downstream jobs.
-- Give each worker one bounded question and require the relevant Initiator, Data lifecycle, or Process neighborhood matrix with repository-relative `path:line` evidence.
-- Treat worker output as leads, not final evidence; the primary investigator deduplicates candidates, resolves coverage status, follows the critical links, and verifies report citations.
-- Do not create a second fan-out to verify every finding.
-- If a worker is unavailable, fails, or times out, continue inline and record the unexamined coverage as a gap.
-
-## Required report
+### Deep trace report
 
 ```md
 # Codebase research: <system or question>
@@ -113,12 +170,12 @@ Working tree: <clean | relevant local changes noted> · Date: <ISO-8601>
 Initiation coverage: <complete | scoped by user | incomplete> · Scope assumption: <only when needed>
 
 ## Direct answer
-<3–6 sentences explaining the application capability/user outcome, all included initiation paths, shared coordination, data outputs, adjacent-process handoffs, and the strongest evidenced failure impact. If any coverage gate is incomplete, start by saying what remains unresolved; do not present the result as the complete workflow.>
+<3–6 sentences explaining the application capability/user outcome, all included initiation paths, shared coordination, data outputs, adjacent-process handoffs, and the strongest evidenced failure impact. If any coverage gate is incomplete, start by saying what remains unresolved.>
 
 ## Application and customer context
-- **Capability and user outcome:** <what the application enables and what a user/system observes on success, with evidence>
-- **Operational role:** <source-supported role in the wider application; do not assert “core/critical” without evidence>
-- **Failure and recovery impact:** <customer-visible state/API outcome, stale/missing data, recovery/retry path, or `Unknown`, with evidence>
+- **Capability and user outcome:** <with evidence>
+- **Operational role:** <source-supported role; do not assert "core/critical" without evidence>
+- **Failure and recovery impact:** <customer-visible state, stale/missing data, recovery path, or Unknown>
 
 ## Initiator coverage
 | Initiator/actor | Trigger and boundary | Path to convergence point | Status | Evidence |
@@ -129,10 +186,10 @@ Initiation coverage: <complete | scoped by user | incomplete> · Scope assumptio
 [Initiator A: actor/system\npath:line] -- <UI action, schedule, event, API call> --\
 [Initiator B: actor/system\npath:line] -- <trigger> ------------------------------+--> [Convergence / internal entry\npath:line]
 [Initiator C: actor/system\npath:line] -- <trigger> ------------------------------/            |
-                                                                                                  v
+                                                                                                   v
 [Coordinator\npath:line] --> [Work / transformation\npath:line] --> {Decision\npath:line}
-                                                              | success --> [Persistence/external effect\npath:line] --> [Terminal response/event\npath:line]
-                                                              ` failure --> [Error / retry / no-op\npath:line]
+                                                               | success --> [Persistence/external effect\npath:line] --> [Terminal response/event\npath:line]
+                                                               ` failure --> [Error / retry / no-op\npath:line]
 
 Show every included initiation path before it merges. Each bracket includes repository-relative `path:line`; mark unproven links as `Unknown`.
 ```
@@ -140,11 +197,11 @@ Show every included initiation path before it merges. Each bracket includes repo
 <!-- Optional when the renderer supports Mermaid: provide the same map as a Mermaid flowchart. -->
 
 ## Workflow walkthrough
-1. **Initiators, triggers, and convergence** — <account for each included UI action, API, schedule, event, CLI, hook, or system actor; identify where paths merge, with citations>
-2. **Shared coordination and decisions** — <explanation with citations>
-3. **Data transformations and state transitions** — <input → transformations → typed/domain output with citations>
-4. **Persistence, external boundaries, observability, and terminal effects** — <explanation with citations>
-5. **Failure, retry, authorization, and no-op paths** — <only evidenced paths>
+1. **Initiators, triggers, and convergence** — account for each included path, with citations.
+2. **Shared coordination and decisions** — explanation with citations.
+3. **Data transformations and state transitions** — input → transformations → typed output.
+4. **Persistence, external boundaries, and terminal effects** — with citations.
+5. **Failure, retry, authorization, and no-op paths** — only evidenced paths.
 
 ## Data lifecycle
 | Domain data | Shape/type and identifiers | Created or transformed by | Persisted store/table/collection | Read by / user-visible outcome | Evidence |
@@ -154,8 +211,6 @@ Show every included initiation path before it merges. Each bracket includes repo
 | Relationship | Process | Shared data/event/state | Ordering and effect on this workflow | Evidence |
 |---|---|---|---|---|
 | Upstream producer / sibling / downstream consumer | <process> | <boundary> | <before, parallel, after, blocks, enriches, consumes> | `<repo-relative-path>:line` |
-
-Explain which sibling processes are separate branches versus required downstream handoffs; include adjacent extraction/enrichment jobs, consumers, and UI/API readers where applicable.
 
 ## Component map
 | Component | Responsibility | Called by / trigger | Calls, owns, or emits | Evidence |
@@ -175,11 +230,11 @@ Explain which sibling processes are separate branches versus required downstream
 - <unknown link, inaccessible dependency, failed worker, or missing test; what would resolve it>
 ```
 
-The **Application and customer context**, **Initiator coverage**, **Data lifecycle**, **Process neighborhood**, and **System map** are mandatory for deep workflow/system questions. Use the portable ASCII diagram above as the required format. Mermaid is optional only when the environment renders it. Every node must cite its source directly or have a numbered legend that does. The map must show every included initiation path before it merges into the shared pipeline and every material downstream handoff after it; do not collapse a UI/onboarding path into a generic “operator” label. Mark unsupported links as `Unknown`; do not omit them to make the flow appear complete. 
+The **Direct answer**, **Initiator coverage**, **Data lifecycle**, **Process neighborhood**, and **System map** are mandatory. Use the portable ASCII diagram above. Every node must cite its source; mark unsupported links as `Unknown` — do not omit them to make the flow appear complete.
 
-## Illustrative example (miniature)
+### Illustrative example (deep trace, miniature)
 
-A filled-in fragment for a hypothetical "password reset" trace — showing the expected density, not the depth:
+A filled-in fragment for a hypothetical "password reset" trace — showing the expected density:
 
 ~~~~
 # Codebase research: password reset flow
@@ -223,22 +278,20 @@ swallows).
 | Downstream consumer  | EmailJob  | reset.requested event | Sends reset email | jobs/email.ts:22 |
 ~~~~
 
-This is a fragment to illustrate the format and density, not a complete trace. A real run fills every matrix row and maps every initiation path.
+This is a fragment to illustrate the format and density, not a complete trace.
 
-## Completion check
+### Deep trace completion check
 
 Before responding, verify:
 
 - [ ] The target repository, revision, and scope are stated.
 - [ ] An Initiator coverage matrix accounts for every discovered candidate as included, explicitly excluded by user scope, or unresolved.
-- [ ] `Initiation coverage` is `complete` only when no discovered candidate is unresolved; otherwise it is `scoped by user` or `incomplete`, and the Direct answer says so.
-- [ ] Every included initiator has an actor/system, trigger mechanism, path to convergence, and repository-relative `path:line` evidence; generic labels do not replace concrete UI/domain flows.
-- [ ] The shared path is closed from each included initiator through persisted/output data to terminal consumer or downstream handoff, or every unknown link is explicit.
-- [ ] A Data lifecycle matrix identifies material types/schemas, IDs, transformations, stores/tables, and readers; writes without established schema or reader are marked incomplete.
-- [ ] A Process neighborhood matrix distinguishes upstream producers, sibling processes, and downstream consumers/handoffs, including their ordering and shared boundaries.
-- [ ] Application/customer context explains the source-supported success outcome and failure/recovery impact; unproven product criticality is `Unknown`.
+- [ ] `Initiation coverage` is `complete` only when no discovered candidate is unresolved; otherwise `scoped by user` or `incomplete`, and the Direct answer says so.
+- [ ] Every included initiator has an actor/system, trigger mechanism, path to convergence, and repository-relative `path:line` evidence.
+- [ ] The shared path is closed from each included initiator through persisted/output data to terminal consumer, or every unknown link is explicit.
+- [ ] A Data lifecycle matrix identifies material types/schemas, IDs, transformations, stores/tables, and readers.
+- [ ] A Process neighborhood matrix distinguishes upstream producers, sibling processes, and downstream consumers/handoffs.
+- [ ] Application/customer context explains the success outcome and failure/recovery impact; unproven criticality is `Unknown`.
 - [ ] The mandatory ASCII diagram, coverage matrices, and walkthrough agree.
-- [ ] Initiation, application context, components, data lifecycle, process neighborhood, configuration, observability, tests, and material alternatives are covered or explicitly marked inapplicable/unverified.
 - [ ] Every factual claim has valid local evidence; inferences are labeled.
-- [ ] The report names evidence gaps and does not replace them with framework assumptions.
 - [ ] No file was modified.

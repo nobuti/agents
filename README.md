@@ -32,9 +32,8 @@ symlinks only when `~/.agents/commands` exists on disk.
 | Skill | Use it for |
 | --- | --- |
 | `code-review` | Reviewing diffs, PRs, or uncommitted changes for correctness and fit. |
-| `deep-research-codebase` | Cited, read-only investigation of the current repository. |
+| `deep-research-codebase` | Investigating how a system works: compact concept maps for learning, or deep traces with full citation-backed reports. |
 | `documentation` | Creating, reorganizing, or reviewing technical documentation. |
-| `explain-before-generate` | Building understanding before generating code or designs. |
 | `grill-me` | Stress-testing a plan or design through a focused interview. |
 | `skill-optimizer` | Improving skill activation, clarity, and regression checks. |
 | `solid` | Code implementation, review, refactoring, debugging, and design. |
