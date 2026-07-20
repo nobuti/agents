@@ -89,3 +89,5 @@ The `wrap` skill produces HANDOFF artifacts in this directory.
 `RTK.md` is reference material only. Use RTK commands only after confirming that `rtk`
 is installed and relevant to the active agent; do not assume Claude Code hooks or a
 `CLAUDE.md` file exist.
+
+@RTK.md
