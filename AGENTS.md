@@ -10,15 +10,7 @@ instructions unless they conflict with higher-priority system or project instruc
 Before changing a repository, inspect its applicable instructions and its current Git
 status. Preserve unrelated user changes; do not overwrite, revert, or commit them.
 
-## Mandatory skill for code work
-
-Before writing, editing, reviewing, refactoring, testing, debugging, planning, or
-designing code, read `~/.agents/skills/solid/SKILL.md`. Load the task-specific skill
-as well when one applies: `systematic-debugging` for root-causing bugs,
-`code-review` for reviewing diffs. If that path is unavailable, report the blocker
-before doing code work.
-
-## Workflow
+## Process
 
 1. Understand the request and inspect the relevant code, tests, configuration, and
    local instructions before proposing or making a non-trivial change.
@@ -66,24 +58,9 @@ specific conflict, and ask for clarification or present the decision needed.
   (for example deleting data, force-pushing, deploying, publishing, or changing access
   controls), unless the user explicitly requested that exact action.
 - Do not commit artifacts such as plans or specs. Do not add `Co-Authored-By` lines.
-  Prefer a Git branch over a worktree unless the user asks for a worktree.
+- Do not commit to main branch.
 - Use conventional commits matching repository style: `feat`, `fix`, `chore`,
   `refactor`, `docs`.
-
-## Artifact storage
-
-Artifacts named SPEC, PLAN, TASKS, IDEA, or HANDOFF may only be written to:
-
-```text
-~/Dev/artifacts/<YYYY-MM-DD>-<slug>/{SPEC|PLAN|IDEA|HANDOFF|TASKS}.md
-```
-
-Never write those artifacts inside a repository, including `tasks/`, `docs/`, or the
-repository root. Before writing one, verify that its path begins with
-`~/Dev/artifacts/`. This rule overrides a skill or command that requests an in-repo
-artifact.
-
-The `wrap` skill produces HANDOFF artifacts in this directory.
 
 ## Optional tools
 
