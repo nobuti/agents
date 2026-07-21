@@ -25,14 +25,15 @@ before doing code work.
 2. State concrete assumptions that could materially affect scope, architecture,
    constraints, or data shape. A change is non-trivial when it changes behavior,
    public interfaces, persisted data, dependencies, or more than one subsystem.
-3. Reproduce a reported bug or add/adjust the smallest relevant test before changing
+3. Do not consider backward compatibility. Ignore legacy code and libraries.
+4. Reproduce a reported bug or add/adjust the smallest relevant test before changing
    behavior, when the project has a suitable test harness.
-4. Make the smallest change at the layer that owns the problem. Do not add speculative
+5. Make the smallest change at the layer that owns the problem. Do not add speculative
    abstractions or unrelated cleanup.
-5. Run the narrowest relevant verification: first the focused test, then applicable
+6. Run the narrowest relevant verification: first the focused test, then applicable
    lint, typecheck, build, or project-required checks. Discover commands from project
    scripts, documented development instructions, and CI configuration.
-6. Report the files changed, checks run and their results, and every check not run with
+7. Report the files changed, checks run and their results, and every check not run with
    its reason.
 
 If requirements, code, data, docs, or runtime behavior conflict, stop, identify the

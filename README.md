@@ -10,7 +10,8 @@ git clone https://github.com/nobuti/agents.git ~/Dev/agents
 bash ~/Dev/agents/setup.sh
 ```
 
-`setup.sh` links `~/.agents` to this repository, then runs `sync.sh`. It stops if
+`setup.sh` links `~/.agents` to this repository, creates `~/Dev/artifacts/` for
+handoff documents, then runs `sync.sh` to wire up Claude Code. It stops if
 `~/.agents` is a real directory, so move that directory aside before setup.
 
 ## Tracked content
@@ -19,13 +20,10 @@ bash ~/Dev/agents/setup.sh
 | --- | --- |
 | `AGENTS.md` | Shared operating instructions. |
 | `RTK.md` | Optional RTK reference notes. |
-| `setup.sh` | Bootstrap script for `~/.agents`. |
-| `sync.sh` | Reconciles supported agent symlinks. |
+| `setup.sh` | Bootstrap script: symlinks `~/.agents` and runs `sync.sh`. |
+| `sync.sh` | Ensures `~/.claude/` symlinks point to `~/.agents/` content. |
 | `check.sh` | Validates skill frontmatter, links, and script syntax. |
 | `skills/` | Personal skills maintained in this repository. |
-
-No personal `commands/` directory is currently tracked. `sync.sh` creates command
-symlinks only when `~/.agents/commands` exists on disk.
 
 ## Personal skills
 
@@ -43,16 +41,18 @@ symlinks only when `~/.agents/commands` exists on disk.
 
 ## Agent synchronization
 
-`sync.sh` only creates symlinks for agent configuration directories that already
-exist:
+`sync.sh` creates symlinks from `~/.claude/` to `~/.agents/`. Claude Code is the only
+agent that needs this — it reads `~/.claude/` rather than `~/.agents/`.
 
-| Agent | Linked content |
-| --- | --- |
-| Claude Code | `AGENTS.md` as `CLAUDE.md`, plus `skills/` and optional `commands/`. |
-| Codex | `AGENTS.md`, `skills/`, and optional prompt files (`~/.codex/prompts`). |
-| Cursor | Optional command files only. |
-| OpenCode | Reads `~/.claude/CLAUDE.md` and `~/.claude/skills` through Claude-compatible discovery. No direct links managed by this repo. |
-| pi | No links are created. This repository does not manage pi extensions. |
+OpenCode and pi auto-discover `~/.agents/` natively, so no additional wiring is
+needed for them. OpenCode also scans `~/.claude/skills/` for backwards compatibility;
+if you want to avoid that redundant scan, set `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`.
+
+| Agent | Instructions | Skills |
+| --- | --- | --- |
+| Claude Code | `~/.claude/CLAUDE.md` (via symlink) | `~/.claude/skills/` (via symlink) |
+| OpenCode | `~/.claude/CLAUDE.md` + `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` |
+| pi | `AGENTS.md` (walk-up from CWD) | Auto-loads from `~/.agents/skills/` |
 
 ## External skills
 
@@ -69,8 +69,8 @@ External skills arrive through two channels:
 npx skills find <query>
 npx skills add vercel-labs/agent-skills --list
 
-# Install selected skills globally for specific agents
-npx skills add vercel-labs/agent-skills --global --agent claude-code --agent codex --agent pi
+# Install selected skills globally
+npx skills add vercel-labs/agent-skills --global --agent claude-code --agent pi
 
 # Inspect, update, or remove globally installed skills
 npx skills list --global
