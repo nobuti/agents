@@ -1,6 +1,6 @@
 ---
 name: writer-persona
-description: Writes in the author's personal voice: conversational, honest, grounded, no hype. Use when drafting posts, essays, PRs, announcements, newsletters, documentation, or any customer-facing text.
+description: "Writes in the author's personal voice: conversational, honest, grounded, no hype. Use when drafting posts, essays, PRs, announcements, newsletters, documentation, or any customer-facing text."
 ---
 
 ## When to use

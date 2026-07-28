@@ -1,6 +1,6 @@
 ---
 name: skill-optimizer
-description: Improves skill quality: activation, clarity, context cost, and regression resilience. Use when creating or editing skills, diagnosing weak uptake, fixing regressions, or benchmarking skill behaviour.
+description: "Improves skill quality: activation, clarity, context cost, and regression resilience. Use when creating or editing skills, diagnosing weak uptake, fixing regressions, or benchmarking skill behaviour."
 ---
 
 ## When to use

@@ -1,6 +1,6 @@
 ---
 name: deep-research-codebase
-description: Investigates how a system or workflow in the current repository works. Switches between two modes: a compact concept map (for learning, "explain first", understanding before coding) and a deep trace with a full citation-backed report, mandatory maps, and coverage matrices (for "how does X work end to end"). Read-only. Use when asked to map, trace, explain, or understand a workflow, subsystem, or architecture.
+description: "Investigates how a system or workflow in the current repository works. Switches between two modes: a compact concept map (for learning, 'explain first', understanding before coding) and a deep trace with a full citation-backed report, mandatory maps, and coverage matrices (for 'how does X work end to end'). Read-only. Use when asked to map, trace, explain, or understand a workflow, subsystem, or architecture."
 ---
 
 # Deep Research: Codebase
