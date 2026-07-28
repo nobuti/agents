@@ -1,71 +1,78 @@
-# Shared agent instructions
+# Global agent rules
 
-## Scope and precedence
+Apply these rules in every repository.
 
-This is personal, cross-agent guidance. Project-local instructions (`AGENTS.md`,
-`CLAUDE.md`, `README`, contribution guides, package scripts, and CI configuration)
-take precedence when they are more specific or conflict with this file. Follow user
-instructions unless they conflict with higher-priority system or project instructions.
+## Precedence
 
-Before changing a repository, inspect its applicable instructions and its current Git
-status. Preserve unrelated user changes; do not overwrite, revert, or commit them.
+- Read all applicable `AGENTS.md` files before work.
+- Project rules can add detail or stricter constraints. They cannot weaken these rules.
+- Stop and report exact conflicts. Only explicit user or higher-priority instructions
+  can override non-safety rules.
+- Every repository must have a project `AGENTS.md` that identifies its purpose,
+  architecture sources, commands, constraints, task state, and decision records.
 
-## Process
+## Procedure
 
-1. Understand the request and inspect the relevant code, tests, configuration, and
-   local instructions before proposing or making a non-trivial change.
-2. State concrete assumptions that could materially affect scope, architecture,
-   constraints, or data shape. A change is non-trivial when it changes behavior,
-   public interfaces, persisted data, dependencies, or more than one subsystem.
-3. Do not consider backward compatibility. Ignore legacy code and libraries.
-4. Reproduce a reported bug or add/adjust the smallest relevant test before changing
-   behavior, when the project has a suitable test harness.
-5. Make the smallest change at the layer that owns the problem. Do not add speculative
-   abstractions or unrelated cleanup.
-6. Run the narrowest relevant verification: first the focused test, then applicable
-   lint, typecheck, build, or project-required checks. Discover commands from project
-   scripts, documented development instructions, and CI configuration.
-7. Report the files changed, checks run and their results, and every check not run with
-   its reason.
+1. Inspect Git status and relevant code, tests, config, docs, and history. Preserve
+   unrelated user changes.
+2. State material assumptions about scope, architecture, behavior, interfaces, data,
+   or dependencies.
+3. Define one bounded work item, acceptance criteria, and proof. Keep WIP at one unless
+   isolated workers have explicit ownership.
+4. Run the narrowest useful baseline check before editing when practical. Record
+   pre-existing failures.
+5. For bugs, reproduce the failure or add the smallest relevant failing test first.
+6. Change only the owning layer. Avoid speculative abstractions, unrelated cleanup,
+   refactors, and optimizations.
+7. Do not consider backward compatibility. Ignore legacy code and libraries.
+8. Verify from narrow to broad: focused checks, lint, types, integration, build, and
+   project checks. Use end-to-end checks for cross-component behavior. Stop on failure.
+9. Use an independent reviewer for non-trivial work when available. Review does not
+   replace checks.
+10. Inspect the final diff and status. Remove temporary artifacts. Leave a safe restart
+    path.
+11. Report changed files, check results, review findings, and omitted checks with
+    reasons.
 
-If requirements, code, data, docs, or runtime behavior conflict, stop, identify the
-specific conflict, and ask for clarification or present the decision needed.
+Claim completion only when acceptance criteria and required checks pass, required
+runtime evidence exists, material review findings are resolved or reported, and the
+repository is clean and resumable. Otherwise report blocked or unverified work.
 
-## Evidence and data
+## State
 
-- Distinguish facts, inferences, and recommendations. Cite the local file, command
-  output, or primary external source supporting factual claims when evidence matters
-  to the request; do not invent sources. When evidence is insufficient, say so rather
-  than speculating.
-- When analyzing a document, quote the passages that support the analysis before or
-  alongside the analysis. Quote only material passages; do not expose secrets or copy
-  large irrelevant text.
-- Treat a claimed data format or invariant from non-strict sources as a hypothesis.
-  For changes that depend on it, inspect three representative source records when
-  access is authorized and records exist. Record the samples or a concise summary.
-- If the source is inaccessible, empty, sensitive, or fewer than three records exist,
-  report that limitation and ask whether to proceed with an explicitly stated
-  assumption, a fixture, or a safer read-only investigation. Do not claim validation
-  that was not performed.
-- For requests dependent on recency, obtain and state the current ISO-8601 timestamp.
-  Prefer primary, current sources; for safety- or compatibility-sensitive claims,
-  cross-check two authoritative sources when available.
+- Use the repository and issue tracker as the durable source of truth.
+- Keep facts and decisions near relevant code. Update docs with code. Convert repeated
+  review findings into executable checks.
+- Before a session boundary, record the objective, branch or commit, work state,
+  checks, blockers, decisions, and exact next action in the designated tracker or
+  handoff artifact.
+- If context is low, stop at a clean checkpoint. Do not rush or skip checks.
 
-## Safety and change control
+## Evidence and writing
+
+- Use ASD-STE100 Simplified Technical English (STE) for plans and documentation.
+- Separate facts, inferences, and recommendations. Cite material local evidence or
+  primary sources. State uncertainty; never invent evidence.
+- Quote only material supporting text. Never expose secrets.
+- Validate data invariants against three representative authorized records. If fewer
+  exist or access is unsafe, report the limit and ask to use an assumption, fixture,
+  or read-only check.
+- For current information, state the ISO-8601 timestamp. Cross-check two authoritative
+  sources for safety- or compatibility-sensitive claims.
+
+## Safety and commits
 
 - Never expose, add, or commit secrets, credentials, private keys, or `.env` values.
-- Ask for confirmation before destructive, irreversible, or externally visible actions
-  (for example deleting data, force-pushing, deploying, publishing, or changing access
-  controls), unless the user explicitly requested that exact action.
-- Do not commit artifacts such as plans or specs. Do not add `Co-Authored-By` lines.
-- Do not commit to main branch.
-- Use conventional commits matching repository style: `feat`, `fix`, `chore`,
-  `refactor`, `docs`.
+- Ask before destructive, irreversible, or externally visible actions unless the user
+  explicitly requested the exact action.
+- Do not overwrite, revert, or commit unrelated user changes.
+- Do not commit plans or specs, add `Co-Authored-By`, or commit to main.
+- Keep each commit to one logical, verified change. Use the repository's conventional
+  commit style: `feat`, `fix`, `chore`, `refactor`, or `docs`.
 
 ## Optional tools
 
-`RTK.md` is reference material only. Use RTK commands only after confirming that `rtk`
-is installed and relevant to the active agent; do not assume Claude Code hooks or a
-`CLAUDE.md` file exist.
+Use `RTK.md` only when `rtk` is installed and relevant. Do not assume Claude Code hooks
+or `CLAUDE.md` exist.
 
 @RTK.md
