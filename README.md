@@ -50,8 +50,19 @@ External skills install into `skills/` (this repo). Two sources:
    ```bash
    npx skills@latest add mattpocock/skills
    npx skills list --global
-   npx skills update --global
+   npx skills@latest update --global
    ```
+
+   To update the installed skills, run:
+   ```bash
+   # Update all installed skills.
+   npx skills@latest update --global
+
+   # Update one installed skill by its skill name.
+   npx skills@latest update tdd --global
+   ```
+   `mattpocock/skills` is a source repository, not an installed skill name. Do
+   not pass it to `update`.
 
 2. **Agent-native plugin managers** (e.g. Claude Code plugins in `~/.claude/settings.json`) — managed outside this repo.
 
@@ -71,7 +82,7 @@ OpenCode also scans `~/.claude/skills/` for backwards compatibility; set `OPENCO
 
 ```bash
 cd ~/Dev/agents && git pull && bash sync.sh
-npx skills update --global         # external skills
+npx skills@latest update --global  # all external skills
 ```
 
 ## Validating
