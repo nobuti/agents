@@ -15,6 +15,7 @@ bash ~/Dev/agents/setup.sh
 | --- | --- |
 | `AGENTS.md` | Shared operating instructions and skill pipeline. |
 | `RTK.md` | Optional RTK reference notes. |
+| `claude/settings.json` | Claude Code global settings (permissions, hooks, statusLine, theme). |
 | `setup.sh` | Bootstrap: symlinks `~/.agents`, runs `sync.sh`. |
 | `sync.sh` | Wires `~/.claude/` symlinks to `~/.agents/`. |
 | `check.sh` | Validates skill frontmatter, links, and script syntax. |
@@ -64,17 +65,17 @@ External skills install into `skills/` (this repo). Two sources:
    `mattpocock/skills` is a source repository, not an installed skill name. Do
    not pass it to `update`.
 
-2. **Agent-native plugin managers** (e.g. Claude Code plugins in `~/.claude/settings.json`) — managed outside this repo.
+2. **Agent-native plugin managers** (e.g. Claude Code plugins) — managed outside this repo.
 
 Review `git status` before committing after installing external skills.
 
 ## Agent synchronization
 
-| Agent | Instructions | Skills |
-| --- | --- | --- |
-| Claude Code | `~/.claude/CLAUDE.md` (symlink) | `~/.claude/skills/` (symlink) |
-| OpenCode | `~/.claude/CLAUDE.md` + `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` |
-| pi | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` |
+| Agent | Instructions | Skills | Settings |
+| --- | --- | --- | --- |
+| Claude Code | `~/.claude/CLAUDE.md` (symlink) | `~/.claude/skills/` (symlink) | `~/.claude/settings.json` (symlink) |
+| OpenCode | `~/.claude/CLAUDE.md` + `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — |
+| pi | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — |
 
 OpenCode also scans `~/.claude/skills/` for backwards compatibility; set `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` to skip it.
 

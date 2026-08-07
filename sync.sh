@@ -69,8 +69,9 @@ ensure_symlink() {
 
 echo "Syncing Claude Code config..."
 
-ensure_symlink "$AGENTS_DIR/AGENTS.md"  "$CLAUDE_DIR/CLAUDE.md" "CLAUDE.md"
-ensure_symlink "$AGENTS_DIR/skills"    "$CLAUDE_DIR/skills"    "skills   "
+ensure_symlink "$AGENTS_DIR/AGENTS.md"          "$CLAUDE_DIR/CLAUDE.md"      "CLAUDE.md    "
+ensure_symlink "$AGENTS_DIR/skills"             "$CLAUDE_DIR/skills"         "skills       "
+ensure_symlink "$AGENTS_DIR/claude/settings.json" "$CLAUDE_DIR/settings.json" "settings.json"
 
 echo ""
 if [ "$DRY_RUN" -eq 1 ]; then
