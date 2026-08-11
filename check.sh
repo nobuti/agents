@@ -1,5 +1,5 @@
 #!/bin/bash
-# Validate the agents repository: frontmatter, links, shell scripts.
+# Validate the agents repository: frontmatter, links, shell scripts, sync behavior.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -56,7 +56,7 @@ failures=$((failures + link_failures))
 
 echo ""
 echo "=== Shell syntax check ==="
-for script in setup.sh sync.sh check.sh; do
+for script in setup.sh sync.sh check.sh tests/sync_test.sh; do
     target="$SCRIPT_DIR/$script"
     if [ -f "$target" ]; then
         bash -n "$target" || failures=$((failures + 1))
@@ -64,12 +64,18 @@ for script in setup.sh sync.sh check.sh; do
 done
 if command -v shellcheck &>/dev/null; then
     echo "  shellcheck found, running..."
-    for script in setup.sh sync.sh check.sh; do
+    for script in setup.sh sync.sh check.sh tests/sync_test.sh; do
         target="$SCRIPT_DIR/$script"
         [ -f "$target" ] && shellcheck "$target" || true
     done
 else
     echo "  shellcheck not installed (skipping)"
+fi
+
+echo ""
+echo "=== Sync behavior check ==="
+if ! bash "$SCRIPT_DIR/tests/sync_test.sh"; then
+    failures=$((failures + 1))
 fi
 
 echo ""

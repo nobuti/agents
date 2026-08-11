@@ -1,78 +1,80 @@
 # Global agent rules
 
-Apply these rules in every repository.
+Sources: `README.md` (purpose, structure, commands); this file (constraints); Git/issues
+(state, decisions).
 
 ## Precedence
 
-- Read all applicable `AGENTS.md` files before work.
-- Project rules can add detail or stricter constraints. They cannot weaken these rules.
-- Stop and report exact conflicts. Only explicit user or higher-priority instructions
-  can override non-safety rules.
-- Every repository must have a project `AGENTS.md` that identifies its purpose,
-  architecture sources, commands, constraints, task state, and decision records.
+- Load applicable `AGENTS.md` first. Specific rules can strengthen, not weaken, these.
+- On conflict, stop, state both, ask. Only explicit user/higher-priority
+  instructions override non-safety rules.
+- Project `AGENTS.md` must link purpose, architecture, commands, constraints, tracker,
+  and decisions.
 
-## Procedure
+## Definitions
 
-1. Inspect Git status and relevant code, tests, config, docs, and history. Preserve
-   unrelated user changes.
-2. State material assumptions about scope, architecture, behavior, interfaces, data,
-   or dependencies.
-3. Define one bounded work item, acceptance criteria, and proof. Keep WIP at one unless
-   isolated workers have explicit ownership.
-4. Run the narrowest useful baseline check before editing when practical. Record
-   pre-existing failures.
-5. For bugs, reproduce the failure or add the smallest relevant failing test first.
-6. Change only the owning layer. Avoid speculative abstractions, unrelated cleanup,
-   refactors, and optimizations.
-7. Do not consider backward compatibility. Ignore legacy code and libraries.
-8. Verify from narrow to broad: focused checks, lint, types, integration, build, and
-   project checks. Use end-to-end checks for cross-component behavior. Stop on failure.
-9. Use an independent reviewer for non-trivial work when available. Review does not
+- **Non-trivial**: affects behavior, public interfaces, persisted data, dependencies,
+  or multiple files or subsystems.
+- **Protected**: deletes user-owned or persistent data; force-pushes; rewrites history;
+  deploys; publishes; changes access; sends external messages; or mutates external state.
+
+## Workflow
+
+1. Inspect Git status, code, tests, config, docs, and history; preserve unrelated
+   changes.
+2. Define one item, criteria, and proof. Limit work in progress to one unless parallel
+   workers own separate scopes. Before non-trivial work, state material assumptions
+   affecting scope, design, behavior, interfaces, data, or dependencies.
+3. Before edits, run the narrowest check or say none exists. Record existing
+   failures.
+4. For bugs, reproduce or add the smallest failing test before changing behavior.
+5. Edit only the owning layer; add no speculative abstractions, unrelated cleanup, or
+   unrequested optimization.
+6. Preserve compatibility for published APIs and known consumers. If consumer status
+   is unknown, ask before breaking. Ignore legacy compatibility only when neither exists.
+7. Verify: focused check, lint, types, integration, build, project checks. Use
+   end-to-end evidence across components. Investigate the first new failure; record
+   unrelated existing failures and continue when safe.
+8. For non-trivial work, get independent review by skill or subagent; it does not
    replace checks.
-10. Inspect the final diff and status. Remove temporary artifacts. Leave a safe restart
-    path.
-11. Report changed files, check results, review findings, and omitted checks with
+9. Inspect final diff and status. Remove task temporary files, account for changes,
+   and leave the repository resumable.
+10. After changes, report files, checks, review findings, and skipped checks with
     reasons.
 
-Claim completion only when acceptance criteria and required checks pass, required
-runtime evidence exists, material review findings are resolved or reported, and the
-repository is clean and resumable. Otherwise report blocked or unverified work.
+Report completion only if criteria/checks pass, behavior changes have runtime evidence,
+review findings are resolved/reported, and no task-created temporary artifacts remain.
+Else report blocked/unverified.
 
-## State
+## Handoff
 
-- Use the repository and issue tracker as the durable source of truth.
-- Keep facts and decisions near relevant code. Update docs with code. Convert repeated
-  review findings into executable checks.
-- Before a session boundary, record the objective, branch or commit, work state,
-  checks, blockers, decisions, and exact next action in the designated tracker or
-  handoff artifact.
-- If context is low, stop at a clean checkpoint. Do not rush or skip checks.
+- Treat repository/issues as authoritative. Keep decisions near code, align docs, and
+  automate repeated findings.
+- For unfinished work, record objective, ref, state, checks, blockers, decisions, and
+  next action in tracker or final response.
+- On low context, stop at a clean checkpoint. Skip no required work.
 
-## Evidence and writing
+## Evidence
 
-- Use ASD-STE100 Simplified Technical English (STE) for plans and documentation.
-- Separate facts, inferences, and recommendations. Cite material local evidence or
-  primary sources. State uncertainty; never invent evidence.
-- Quote only material supporting text. Never expose secrets.
-- Validate data invariants against three representative authorized records. If fewer
-  exist or access is unsafe, report the limit and ask to use an assumption, fixture,
-  or read-only check.
-- For current information, state the ISO-8601 timestamp. Cross-check two authoritative
-  sources for safety- or compatibility-sensitive claims.
+- Use ASD-STE100 Simplified Technical English (STE) for plans and docs.
+- In reviews, research, and handoffs, separate facts, inferences, recommendations;
+  cite non-obvious facts and uncertainty.
+- Quote minimum evidence. Never quote or expose secrets.
+- Prefer authoritative schemas and tests. For data-inferred invariants, inspect up to
+  three authorized representative records; state any access or sample limit.
+- Timestamp time-sensitive claims in ISO 8601. Safety or compatibility claims need two
+  authoritative sources.
 
-## Safety and commits
+## Safety
 
-- Never expose, add, or commit secrets, credentials, private keys, or `.env` values.
-- Ask before destructive, irreversible, or externally visible actions unless the user
-  explicitly requested the exact action.
-- Do not overwrite, revert, or commit unrelated user changes.
-- Do not commit plans or specs, add `Co-Authored-By`, or commit to main.
-- Keep each commit to one logical, verified change. Use the repository's conventional
-  commit style: `feat`, `fix`, `chore`, `refactor`, or `docs`.
+- Do not read secret-bearing files such as credentials, private keys, or `.env`; never
+  expose, write, or commit secret values.
+- Ask before a protected action unless the user requested that exact action.
+- Never overwrite, revert, or commit unrelated user changes.
+- Never commit agent scratch plans/specs, add `Co-Authored-By`, or commit to `main`.
+- Make one logical, verified change per commit. Use `feat`, `fix`, `chore`, `refactor`,
+  or `docs`.
 
-## Optional tools
+## Tools
 
-Use `RTK.md` only when `rtk` is installed and relevant. Do not assume Claude Code hooks
-or `CLAUDE.md` exist.
-
-@RTK.md
+Read `RTK.md` before `rtk`. Assume no hooks or `CLAUDE.md`.
