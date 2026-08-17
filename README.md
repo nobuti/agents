@@ -17,8 +17,9 @@ bash ~/Dev/agents/setup.sh
 | `RTK.md` | Optional RTK reference notes. |
 | `claude/settings.json` | Claude Code global settings (permissions, hooks, statusLine, theme). |
 | `claude/agents/` | Claude Code subagent definitions (explorer, researcher, reviewer). |
+| `codex/agents/` | Codex custom agent definitions with pinned models and read-only sandboxes. |
 | `setup.sh` | Bootstrap: symlinks `~/.agents`, runs `sync.sh`. |
-| `sync.sh` | Generates Claude instructions and wires shared Claude symlinks. |
+| `sync.sh` | Generates Claude instructions and wires shared Claude and Codex symlinks. |
 | `check.sh` | Validates skill frontmatter, links, and script syntax. |
 | `skills/` | Custom skills in this repo. |
 | `.skill-lock.json` | Vercel Skills CLI lock file. |
@@ -46,26 +47,25 @@ Core pipeline: `/grill-with-docs` → `/to-spec` → `/to-tickets` → `/impleme
 
 ## Subagents
 
-This is the Claude Code-specific implementation of the tool-agnostic
-delegation principle in `AGENTS.md` — OpenCode, pi, and Codex each have
-their own delegation mechanism and aren't covered here.
+Claude Code and Codex implement the tool-agnostic delegation principle in
+`AGENTS.md` with client-native agent definitions. They keep delegated work off
+the main session's context and model tier: the orchestrator dispatches a narrow
+task and receives a short report instead of raw tool output.
 
-`claude/agents/` holds Claude Code subagent definitions, synced to
-`~/.claude/agents/`. They exist to keep delegated work off the main
-session's context and off its model tier — the orchestrator (the session
-you're talking to) dispatches them, reads back a short report, and never
-sees their raw tool output.
+`claude/agents/` is synced to `~/.claude/agents/`; each file in
+`codex/agents/` is linked into `~/.codex/agents/`. Per-file Codex links coexist
+with existing personal agents and preserve conflicting user-owned files or
+symlinks. Sync does not modify the user's `~/.codex/config.toml`.
 
-| Agent | Model | Tools | Use for |
+| Agent | Claude model and tools | Codex model and sandbox | Use for |
 | --- | --- | --- | --- |
-| `explorer` | Haiku | Read, Grep, Glob | Mechanical lookups — "where is X", "does Y exist". No judgment calls. |
-| `researcher` | Sonnet | WebFetch, WebSearch, Read, Grep, Glob, Write | Background research against primary sources, written up as a cited report. |
-| `reviewer` | Sonnet | Read, Grep, Glob, Bash (read-only) | Auditing a diff or codebase region against a standard, spec, or heuristic. Never edits. |
+| `explorer` | Haiku; Read, Grep, Glob | `gpt-5.6-luna`, low; read-only | Mechanical lookups — "where is X", "does Y exist". No judgment calls. |
+| `researcher` | Sonnet; WebFetch, WebSearch, Read, Grep, Glob, Write | `gpt-5.6-terra`, medium; read-only with live web search | Background research against primary sources. Codex returns citations to the parent instead of writing files. |
+| `reviewer` | Sonnet; Read, Grep, Glob, Bash (read-only) | `gpt-5.6-terra`, high; read-only | Auditing a diff or codebase region against a standard, spec, or heuristic. Never edits. |
 
-Each agent pins its own model in its frontmatter, independent of whatever
-model the orchestrating session is running. Switching the session to Opus
-does not raise the cost of delegated lookups or reviews — only the
-orchestrator's own reasoning gets more expensive.
+Each client-specific definition pins its model independently of the
+orchestrating session. Switching the main session to a stronger model does not
+raise the cost tier of delegated lookups, research, or reviews.
 
 Mapped to the installed skill pipeline: `explorer` backs `grilling`'s
 fact-finding dispatch and `deep-research-codebase`'s parallel investigator
@@ -135,18 +135,19 @@ Review `git status` before committing after installing external skills.
 | Agent | Instructions | Skills | Subagents | Settings |
 | --- | --- | --- | --- | --- |
 | Claude Code | `~/.claude/CLAUDE.md` (generated) | `~/.claude/skills/` (symlink) | `~/.claude/agents/` (symlink) | `~/.claude/settings.json` (symlink) |
+| Codex | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | TOML symlinks in `~/.codex/agents/` | Existing user config is preserved |
 | OpenCode | `~/.claude/CLAUDE.md` + `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — | — |
 | pi | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — | — |
 
 OpenCode also scans `~/.claude/skills/` for backwards compatibility; set `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` to skip it.
 
-### Sync Claude Code
+### Sync agent configuration
 
 `setup.sh` runs the sync during initial setup. Run it again after:
 
-- editing or pulling changes to `AGENTS.md`;
-- changing the Claude generation behavior in `sync.sh`; or
-- repairing the generated instructions or managed Claude links.
+- editing or pulling changes to `AGENTS.md` or client-specific agent definitions;
+- changing generation or linking behavior in `sync.sh`; or
+- repairing generated instructions or managed Claude/Codex links.
 
 Run from the repository root:
 
@@ -161,10 +162,11 @@ The sync produces this result:
 - It generates `~/.claude/CLAUDE.md` from `AGENTS.md`.
 - It renames literal `AGENTS.md` references to `CLAUDE.md` in the generated file.
 - It links Claude's skills, agents, and settings to their shared files in `~/.agents/`.
+- It links Codex's custom agents without modifying `~/.codex/config.toml`.
 - It atomically replaces the old managed `CLAUDE.md` symlink.
 - It updates only files marked as generated and preserves an unmanaged `CLAUDE.md`.
 
-OpenCode and pi read `AGENTS.md` directly, so they do not need this sync.
+OpenCode, pi, and Codex read `AGENTS.md` directly. Codex sync only installs its custom agent definitions.
 
 ## Updating
 

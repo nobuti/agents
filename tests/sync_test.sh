@@ -18,8 +18,9 @@ fail() {
 run_sync() {
     local agents_dir="$1"
     local claude_dir="$2"
-    shift 2
-    AGENTS_DIR="$agents_dir" CLAUDE_DIR="$claude_dir" \
+    local codex_dir="$3"
+    shift 3
+    AGENTS_DIR="$agents_dir" CLAUDE_DIR="$claude_dir" CODEX_DIR="$codex_dir" \
         bash "$REPO_DIR/sync.sh" "$@"
 }
 
@@ -37,35 +38,49 @@ assert_generated() {
 
 agents_dir="$TEST_ROOT/agents"
 claude_dir="$TEST_ROOT/claude"
-mkdir -p "$agents_dir" "$claude_dir"
+codex_dir="$TEST_ROOT/codex"
+mkdir -p "$agents_dir/claude/agents" "$agents_dir/codex/agents" "$claude_dir"
 printf '# Rules\nLoad AGENTS.md and nested AGENTS.md.\n' > "$agents_dir/AGENTS.md"
+for agent in explorer researcher reviewer; do
+    printf 'name = "%s"\n' "$agent" > "$agents_dir/codex/agents/$agent.toml"
+done
 
-run_sync "$agents_dir" "$claude_dir" > "$TEST_ROOT/create.out"
+run_sync "$agents_dir" "$claude_dir" "$codex_dir" > "$TEST_ROOT/create.out"
 assert_generated "$claude_dir/CLAUDE.md"
+for agent in explorer researcher reviewer; do
+    link="$codex_dir/agents/$agent.toml"
+    [ -L "$link" ] || fail "Codex $agent symlink was not created"
+    [ "$(readlink "$link")" = "$agents_dir/codex/agents/$agent.toml" ] || \
+        fail "Codex $agent symlink has the wrong target"
+done
 
-run_sync "$agents_dir" "$claude_dir" > "$TEST_ROOT/repeat.out"
+run_sync "$agents_dir" "$claude_dir" "$codex_dir" > "$TEST_ROOT/repeat.out"
 grep -Fq '= CLAUDE.md' "$TEST_ROOT/repeat.out" || fail 'repeat sync was not unchanged'
+grep -Fq "= explorer.toml -> $agents_dir/codex/agents/explorer.toml" "$TEST_ROOT/repeat.out" || \
+    fail 'Codex explorer symlink was not unchanged'
 
 printf '# Updated\nLoad AGENTS.md.\n' > "$agents_dir/AGENTS.md"
-run_sync "$agents_dir" "$claude_dir" > "$TEST_ROOT/update.out"
+run_sync "$agents_dir" "$claude_dir" "$codex_dir" > "$TEST_ROOT/update.out"
 grep -Fq '# Updated' "$claude_dir/CLAUDE.md" || fail 'generated file was not updated'
 assert_generated "$claude_dir/CLAUDE.md"
 
 cp "$claude_dir/CLAUDE.md" "$TEST_ROOT/before-dry-run"
 printf '# Dry run must not copy AGENTS.md.\n' > "$agents_dir/AGENTS.md"
-run_sync "$agents_dir" "$claude_dir" --dry-run > "$TEST_ROOT/dry-run.out"
+run_sync "$agents_dir" "$claude_dir" "$codex_dir" --dry-run > "$TEST_ROOT/dry-run.out"
 cmp -s "$TEST_ROOT/before-dry-run" "$claude_dir/CLAUDE.md" || \
     fail 'dry-run changed CLAUDE.md'
 
 dry_create_dir="$TEST_ROOT/dry-create"
+dry_codex_dir="$TEST_ROOT/dry-codex"
 mkdir -p "$dry_create_dir"
-run_sync "$agents_dir" "$dry_create_dir" --dry-run > "$TEST_ROOT/dry-create.out"
+run_sync "$agents_dir" "$dry_create_dir" "$dry_codex_dir" --dry-run > "$TEST_ROOT/dry-create.out"
 [ ! -e "$dry_create_dir/CLAUDE.md" ] || fail 'dry-run created CLAUDE.md'
+[ ! -e "$dry_codex_dir" ] || fail 'dry-run created the Codex directory'
 
 dry_migration_dir="$TEST_ROOT/dry-migration"
 mkdir -p "$dry_migration_dir"
 ln -s "$agents_dir/AGENTS.md" "$dry_migration_dir/CLAUDE.md"
-run_sync "$agents_dir" "$dry_migration_dir" --dry-run > "$TEST_ROOT/dry-migration.out"
+run_sync "$agents_dir" "$dry_migration_dir" "$codex_dir" --dry-run > "$TEST_ROOT/dry-migration.out"
 [ -L "$dry_migration_dir/CLAUDE.md" ] || fail 'dry-run replaced managed symlink'
 [ "$(readlink "$dry_migration_dir/CLAUDE.md")" = "$agents_dir/AGENTS.md" ] || \
     fail 'dry-run changed managed symlink target'
@@ -73,14 +88,14 @@ run_sync "$agents_dir" "$dry_migration_dir" --dry-run > "$TEST_ROOT/dry-migratio
 migration_dir="$TEST_ROOT/migration"
 mkdir -p "$migration_dir"
 ln -s "$agents_dir/AGENTS.md" "$migration_dir/CLAUDE.md"
-run_sync "$agents_dir" "$migration_dir" > "$TEST_ROOT/migration.out"
+run_sync "$agents_dir" "$migration_dir" "$codex_dir" > "$TEST_ROOT/migration.out"
 assert_generated "$migration_dir/CLAUDE.md"
 
 unmanaged_dir="$TEST_ROOT/unmanaged"
 mkdir -p "$unmanaged_dir"
 printf 'user-owned Claude instructions\n' > "$unmanaged_dir/CLAUDE.md"
 cp "$unmanaged_dir/CLAUDE.md" "$TEST_ROOT/unmanaged-before"
-run_sync "$agents_dir" "$unmanaged_dir" > "$TEST_ROOT/unmanaged.out"
+run_sync "$agents_dir" "$unmanaged_dir" "$codex_dir" > "$TEST_ROOT/unmanaged.out"
 cmp -s "$TEST_ROOT/unmanaged-before" "$unmanaged_dir/CLAUDE.md" || \
     fail 'sync overwrote unmanaged CLAUDE.md'
 
@@ -88,20 +103,36 @@ unmanaged_link_dir="$TEST_ROOT/unmanaged-link"
 mkdir -p "$unmanaged_link_dir"
 printf 'other instructions\n' > "$TEST_ROOT/other-CLAUDE.md"
 ln -s "$TEST_ROOT/other-CLAUDE.md" "$unmanaged_link_dir/CLAUDE.md"
-run_sync "$agents_dir" "$unmanaged_link_dir" > "$TEST_ROOT/unmanaged-link.out"
+run_sync "$agents_dir" "$unmanaged_link_dir" "$codex_dir" > "$TEST_ROOT/unmanaged-link.out"
 [ "$(readlink "$unmanaged_link_dir/CLAUDE.md")" = "$TEST_ROOT/other-CLAUDE.md" ] || \
     fail 'sync replaced unmanaged CLAUDE.md symlink'
 
 broken_link_dir="$TEST_ROOT/broken-link"
 mkdir -p "$broken_link_dir"
 ln -s "$TEST_ROOT/missing-CLAUDE.md" "$broken_link_dir/CLAUDE.md"
-run_sync "$agents_dir" "$broken_link_dir" > "$TEST_ROOT/broken-link.out"
+run_sync "$agents_dir" "$broken_link_dir" "$codex_dir" > "$TEST_ROOT/broken-link.out"
 [ "$(readlink "$broken_link_dir/CLAUDE.md")" = "$TEST_ROOT/missing-CLAUDE.md" ] || \
     fail 'sync replaced broken unmanaged CLAUDE.md symlink'
 
 directory_dir="$TEST_ROOT/directory"
 mkdir -p "$directory_dir/CLAUDE.md"
-run_sync "$agents_dir" "$directory_dir" > "$TEST_ROOT/directory.out"
+run_sync "$agents_dir" "$directory_dir" "$codex_dir" > "$TEST_ROOT/directory.out"
 [ -d "$directory_dir/CLAUDE.md" ] || fail 'sync replaced CLAUDE.md directory'
+
+unmanaged_codex_dir="$TEST_ROOT/unmanaged-codex"
+mkdir -p "$unmanaged_codex_dir/agents"
+printf 'keep me\n' > "$unmanaged_codex_dir/agents/local.toml"
+printf 'personal explorer\n' > "$unmanaged_codex_dir/agents/explorer.toml"
+ln -s "$TEST_ROOT/missing-reviewer.toml" "$unmanaged_codex_dir/agents/reviewer.toml"
+run_sync "$agents_dir" "$claude_dir" "$unmanaged_codex_dir" > "$TEST_ROOT/unmanaged-codex.out"
+grep -Fq 'keep me' "$unmanaged_codex_dir/agents/local.toml" || \
+    fail 'sync changed an unrelated Codex agent'
+grep -Fq 'personal explorer' "$unmanaged_codex_dir/agents/explorer.toml" || \
+    fail 'sync replaced an unmanaged Codex agent'
+[ "$(readlink "$unmanaged_codex_dir/agents/reviewer.toml")" = "$TEST_ROOT/missing-reviewer.toml" ] || \
+    fail 'sync replaced an unmanaged dangling Codex agent symlink'
+[ "$(readlink "$unmanaged_codex_dir/agents/researcher.toml")" = \
+    "$agents_dir/codex/agents/researcher.toml" ] || \
+    fail 'sync did not install a non-conflicting Codex agent'
 
 echo 'sync integration tests passed'
