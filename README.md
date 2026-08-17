@@ -36,6 +36,34 @@ npx skills@latest add mattpocock/skills
 
 Core pipeline: `/grill-with-docs` → `/to-spec` → `/to-tickets` → `/implement` (which drives `/tdd` at seams, closes with `/code-review`). See `AGENTS.md` for the full pipeline reference.
 
+### Using Matt's skills with Paseo
+
+Matt's skills define the engineering workflow. Paseo manages agents and workspaces.
+
+```text
+idea → grill → spec → tickets → implement → test → review → commit
+```
+
+Use them together with these rules:
+
+- Keep `/implement` and `/tdd` in the main or top-level session. They need the context from the earlier planning work.
+- Use Paseo agents for read-only research, advice, committees, and reviews. Keep delegation one level deep.
+- Use a worktree before implementation. Never commit to `main`.
+- `/handoff` writes a context file for a later session. `/paseo-handoff` starts another agent now.
+- A heartbeat continues the same agent. A schedule starts a fresh agent.
+
+Common flows:
+
+```text
+small change:  /grill-with-docs → /implement
+feature:       /grill-with-docs → /to-spec → /to-tickets → /implement
+hard decision: /paseo-committee → /to-spec
+second opinion: /paseo-advisor
+hard bug:      /diagnosing-bugs → /tdd → /code-review
+```
+
+Do not run `/implement` inside a Paseo child unless that agent has been detached and is now a top-level session. This avoids nested delegation when `/implement` starts `/code-review`.
+
 ### Custom skills
 
 | Skill | Use it for |
