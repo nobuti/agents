@@ -46,6 +46,20 @@ Report completion only if criteria/checks pass, behavior changes have runtime ev
 review findings are resolved/reported, and no task-created temporary artifacts remain.
 Else report blocked/unverified.
 
+## Delegation
+
+- If the tool supports isolated sub-tasks, delegate scoped, read-only work
+  to them: fact lookups, audits against a written reference, background
+  research. Do not grant a delegate write access beyond its scope.
+- Keep delegation one level deep. Do not let a delegated task spawn further
+  delegates.
+- Match model capability to task. Use the cheapest capable option for
+  mechanical lookups. Reserve the strongest available option for judgment:
+  review, research synthesis, design comparison, plan approval, hard bug
+  diagnosis. Use the default for implementation and routine work.
+- Consult the tool's own docs for how it implements delegation and model
+  selection; the mechanism differs per tool.
+
 ## Handoff
 
 - Treat repository/issues as authoritative. Keep decisions near code, align docs, and

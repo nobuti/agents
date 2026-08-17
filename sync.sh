@@ -153,6 +153,7 @@ echo "Syncing Claude Code config..."
 
 sync_claude_instructions "$AGENTS_DIR/AGENTS.md" "$CLAUDE_DIR/CLAUDE.md"      "CLAUDE.md    "
 ensure_symlink "$AGENTS_DIR/skills"             "$CLAUDE_DIR/skills"         "skills       "
+ensure_symlink "$AGENTS_DIR/claude/agents"      "$CLAUDE_DIR/agents"         "agents       "
 ensure_symlink "$AGENTS_DIR/claude/settings.json" "$CLAUDE_DIR/settings.json" "settings.json"
 
 echo ""
