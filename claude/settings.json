@@ -18,6 +18,7 @@
     "defaultMode": "auto"
   },
   "model": "sonnet",
+  "outputStyle": "STE",
   "disableClaudeAiConnectors": true,
   "disableBundledSkills": true,
   "hooks": {

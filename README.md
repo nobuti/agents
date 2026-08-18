@@ -17,6 +17,7 @@ bash ~/Dev/agents/setup.sh
 | `RTK.md` | Optional RTK reference notes. |
 | `claude/settings.json` | Claude Code global settings (permissions, hooks, statusLine, theme). |
 | `claude/agents/` | Claude Code subagent definitions (explorer, researcher, reviewer). |
+| `claude/output-styles/` | Claude Code custom output styles (STE). |
 | `codex/agents/` | Codex custom agent definitions with pinned models and read-only sandboxes. |
 | `setup.sh` | Bootstrap: symlinks `~/.agents`, runs `sync.sh`. |
 | `sync.sh` | Generates Claude instructions and wires shared Claude and Codex symlinks. |
