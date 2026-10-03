@@ -44,7 +44,7 @@ Cada playbook es un archivo en [`skills/engineering/bob/playbooks/`](skills/engi
 | `wayfinder` | Esfuerzo enorme y difuso, demasiado grande para una sesión. | `/wayfinder` → al despejar el mapa, `/to-spec` y continúa como `feature` |
 | `architecture` | Mantenimiento: que el código sea mejor para agentes. | `/improve-codebase-architecture` → eliges un candidato → `feature` desde `/grill-with-docs` |
 | `research` | Una pregunta que necesita fuentes primarias antes de decidir. | `/research` en un agente de fondo → lees el resultado → `/grill-with-docs` si hay build |
-| `review` | Revisar trabajo ajeno o tu propia rama. Solo lectura. | `/code-review` (+ `/test-review` para MRs de GitLab) |
+| `review` | Revisar trabajo ajeno o tu propia rama. Solo lectura. | `/code-review` |
 
 Para añadir uno, crea `playbooks/<nombre>.md` con el mismo formato y enlázalo en [`bob/SKILL.md`](skills/engineering/bob/SKILL.md).
 
@@ -140,7 +140,6 @@ Mantén los pasos 1-4 en una sola ventana de contexto. La higiene de contexto y 
 | Skill | Qué hace |
 | --- | --- |
 | `explain-codebase` | Mapa conceptual compacto o traza profunda con informe citado. Solo lectura. |
-| `test-review` | Verifica que una MR de GitLab o la rama actual esté bien cubierta por tests; incremental entre iteraciones. |
 | `artifact` | Genera un HTML autocontenido y visual para aprender (diagramas, repo overview). |
 
 ## Scripts
@@ -149,7 +148,6 @@ Mantén los pasos 1-4 en una sola ventana de contexto. La higiene de contexto y 
 | --- | --- |
 | `scripts/setup.sh` | Aplana `skills/**/SKILL.md` en symlinks `skills/<nombre>` y regenera `skills/.gitignore`. |
 | `skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh` | Hook `PreToolUse`: lee el comando por stdin, sale con código 2 si coincide con un patrón git peligroso. |
-| `skills/test-review/scripts/check-run.sh` | Comprobaciones mecánicas sobre un `run-N.md` de test-review (frontmatter, SHAs, secciones). Sale con 1 si hay algún `FAIL`. |
 | `skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh` | Plantilla de bucle de reproducción con humano en el loop (`step`, `capture`). |
 
 ## Estructura de una skill
