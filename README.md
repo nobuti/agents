@@ -1,183 +1,168 @@
 # agents
 
-Shared AI coding agent instructions and skills. `~/.agents` is a symlink to this repo.
+Skills para Claude Code, pensadas para trabajar con agentes de idea a entrega. Cada skill es una carpeta con un `SKILL.md` (más documentos de apoyo y scripts opcionales). Puedes invocarlas como slash command (`/tdd`, `/triage`…) o dejar que **`/bob`** elija el flujo por ti.
 
-## Setup
+Inspirado en [mattpocock/skills](https://www.aihero.dev/skills) y en el enrutado de [pstack](https://flaviocopes.com/pstack/#what-is-poteto-mode): piezas pequeñas, componibles y editables.
+
+## Instalación
 
 ```bash
-git clone https://github.com/nobuti/agents.git ~/Dev/agents
-bash ~/Dev/agents/setup.sh
+git clone <este repo> ~/Dev/nobuti/agents
+cd ~/Dev/nobuti/agents
+scripts/setup.sh
 ```
 
-## Tracked content
+Claude Code solo descubre skills en `skills/<nombre>/SKILL.md`, pero aquí están agrupadas por categoría. `scripts/setup.sh` crea un symlink plano `skills/<nombre>` por cada `skills/**/SKILL.md` y regenera `skills/.gitignore`. Vuelve a ejecutarlo cada vez que añadas, muevas, renombres o borres una skill. Si dos skills comparten nombre, salta la segunda y avisa.
 
-| Path | Purpose |
+## Bob: el punto de entrada
+
+`/bob <lo que quieres hacer>` es un router. Describes el resultado y Bob elige un playbook, lo ejecuta paso a paso y no da nada por terminado sin evidencia. Solo lo invocas tú (`disable-model-invocation`): un router que se dispara solo podría secuestrar una sesión que ya tiene un flujo en curso.
+
+### Cómo se maneja
+
+1. **Pídele algo**: `/bob el endpoint de worklogs devuelve 500 con cantidades vacías`. Sin argumentos, solo pregunta qué quieres hacer.
+2. **Revisa la propuesta.** Bob nombra el playbook, explica por qué y muestra la lista de tareas. **Espera tu confirmación** antes de hacer nada. Si duda entre dos playbooks, te nombra los dos.
+3. **Corrige antes de aceptar.** Si el playbook no encaja, dilo ahora: "mejor `quick`", "sin prototipo".
+4. **Sigue la ejecución.** Bob copia los pasos del playbook tal cual a la lista de tareas. Un paso que se salta sigue visible con el motivo; nunca se descarta ni se reordena en silencio.
+5. **Exige evidencia.** Al cerrar, cada criterio de éxito lleva su prueba: comando ejecutado y salida, archivo leído, test en verde. Lo que no se ejecutó ni se leyó se marca como `Unverified`.
+6. **Es sticky.** Los mensajes siguientes ("sí, sigue", "cambia esto") se quedan dentro del playbook actual. Para cambiar de tema escribe **"new task"** y Bob vuelve a clasificar.
+
+### Qué delega y a quién
+
+Según [`models.md`](skills/engineering/bob/models.md), Bob implementa con un subagente Sonnet, investiga con Sonnet o Explore, y el modelo principal decide y **revisa**. La revisión lee los archivos y ejecuta los tests; no se fía del resumen del implementador. Un cambio trivial (unas líneas, un archivo) puede hacerlo el modelo principal.
+
+### Playbooks
+
+Cada playbook es un archivo en [`skills/engineering/bob/playbooks/`](skills/engineering/bob/playbooks/) con cuándo usarlo, pasos numerados y la evidencia de éxito.
+
+| Playbook | Cuándo | Pasos |
+| --- | --- | --- |
+| `feature` | Una idea que construir, de afinarla a entregarla. | `/grill-with-docs` → (`/prototype`) → `/to-spec` → `/to-tickets` → `/implement` o `/implement-spec` → `/retro` |
+| `bug` | Algo roto, que lanza error, falla o va lento. | `/diagnosing-bugs` (feedback loop primero) → `/tdd` con test de regresión → `/code-review` |
+| `quick` | Cambio pequeño y concreto, sin spec. | `/tdd` → `/code-review`. Escala a `feature` si toca más de ~3 archivos, pide una decisión de diseño, ocupa varias sesiones o hay una duda sin resolver. |
+| `triage` | Issues que llegan crudos (reportes, peticiones). Nunca los que salen de `/to-tickets`. | `/triage` con los roles de `<root>/config.md` |
+| `wayfinder` | Esfuerzo enorme y difuso, demasiado grande para una sesión. | `/wayfinder` → al despejar el mapa, `/to-spec` y continúa como `feature` |
+| `architecture` | Mantenimiento: que el código sea mejor para agentes. | `/improve-codebase-architecture` → eliges un candidato → `feature` desde `/grill-with-docs` |
+| `research` | Una pregunta que necesita fuentes primarias antes de decidir. | `/research` en un agente de fondo → lees el resultado → `/grill-with-docs` si hay build |
+| `review` | Revisar trabajo ajeno o tu propia rama. Solo lectura. | `/code-review` (+ `/test-review` para MRs de GitLab) |
+
+Para añadir uno, crea `playbooks/<nombre>.md` con el mismo formato y enlázalo en [`bob/SKILL.md`](skills/engineering/bob/SKILL.md).
+
+### Comandos
+
+| Comando | Qué hace |
 | --- | --- |
-| `AGENTS.md` | Shared operating instructions and skill pipeline. |
-| `RTK.md` | Optional RTK reference notes. |
-| `claude/settings.json` | Claude Code global settings (permissions, hooks, statusLine, theme). |
-| `claude/agents/` | Claude Code subagent definitions (explorer, researcher, reviewer). |
-| `claude/output-styles/` | Claude Code custom output styles (STE). |
-| `codex/agents/` | Codex custom agent definitions with pinned models and read-only sandboxes. |
-| `setup.sh` | Bootstrap: symlinks `~/.agents`, runs `sync.sh`. |
-| `sync.sh` | Generates Claude instructions and wires shared Claude and Codex symlinks. |
-| `check.sh` | Validates skill frontmatter, links, and script syntax. |
-| `skills/` | Custom skills in this repo. |
-| `.skill-lock.json` | Vercel Skills CLI lock file. |
+| `/bob <petición>` | Clasifica, propone playbook y, tras confirmar, ejecuta. |
+| `/bob setup` | Crea o rehace la config del repo actual. |
+| `new task` (dentro de una sesión de Bob) | Suelta el playbook actual y vuelve a clasificar. |
+
+## Config por repo
+
+Las skills de engineering necesitan saber dónde está el issue tracker, qué labels usa el triage y dónde viven el glosario y los ADRs. Eso es **por repo**: dos repos no comparten glosario ni tracker. Todo vive en el repo de artifacts, nunca dentro de los proyectos:
+
+```
+~/Dev/artifacts/<ruta-del-repo>/        ← <root>
+├── config.md        ## Issue tracker, ## Triage labels
+├── GLOSSARY.md      un repo, un glosario
+├── adr/NNNN-slug.md
+└── <feature>/
+    ├── spec.md
+    └── issues/NN-slug.md
+```
+
+- **`<ruta-del-repo>`** sale de `git remote get-url origin` sin host ni `.git` (`firesponse/web/calmapper`). `~/Dev/artifacts/repos.md` permite sobrescribirlo para casos raros. Sin remoto, Bob pregunta una vez.
+- **Quién la crea**: solo `/bob`, la primera vez que corre en un repo sin `<root>/config.md`, o con `/bob setup`. Las skills sueltas (`/tdd`, `/triage`…) nunca escriben config.
+- **Fallback**: si el repo no tiene config, se lee `~/Dev/artifacts/default/config.md` (solo lectura).
+- **Glosario y ADRs** los crea `/domain-modeling` de forma lazy, solo en `<root>`.
+- **Cómo la encuentran las skills**: el `CLAUDE.md` global tiene un bloque `## Agent skills` que apunta a la regla de resolución, [`skills/engineering/bob/CONFIG.md`](skills/engineering/bob/CONFIG.md).
+
+## El flujo principal
+
+```
+/grill-with-docs → (/prototype) → /to-spec → /to-tickets → /implement | /implement-spec → /retro
+                                                              └─ /tdd + /code-review
+```
+
+Es el playbook `feature`. Si prefieres conducirlo a mano, estos son los pasos:
+
+1. **Afinar la idea** con `/grill-with-docs`, una entrevista que deja rastro en `<root>/GLOSSARY.md` y `<root>/adr/`.
+2. **Prototipar** (opcional) con `/prototype` si la pregunta necesita código ejecutable; `/handoff` hace de puente.
+3. **Especificar**: `/to-spec` convierte la conversación en un spec y `/to-tickets` lo parte en tickets *tracer-bullet* con sus dependencias.
+4. **Construir**: `/implement` ticket a ticket, o `/implement-spec` para orquestar subagentes en paralelo sobre una rama de integración. Ambos usan `/tdd` y cierran con `/code-review`.
+5. **Cerrar el ciclo** con `/retro`, que propone mejoras al *entorno* del agente (checks, estándares, punteros), no al código.
+
+Mantén los pasos 1-4 en una sola ventana de contexto. La higiene de contexto y el árbol de decisión entre `/clear`, `/compact`, `/handoff` y subagentes están en [`FLOWS.md`](skills/engineering/bob/FLOWS.md) y [`PHASE-BOUNDARIES.md`](skills/engineering/bob/PHASE-BOUNDARIES.md).
 
 ## Skills
 
-### Pipeline (Matt Pocock)
+### Engineering — `skills/engineering/`
 
-Engineering workflow skills installed via Vercel Skills CLI:
-
-```bash
-npx skills@latest add mattpocock/skills
-```
-
-Core pipeline: `/grill-with-docs` → `/to-spec` → `/to-tickets` → `/implement` (which drives `/tdd` at seams, closes with `/code-review`). See `AGENTS.md` for the full pipeline reference.
-
-### Custom skills
-
-| Skill | Use it for |
+| Skill | Qué hace |
 | --- | --- |
-| `deep-research-codebase` | Codebase archaeology: initiator matrices, data lifecycle, ASCII system maps. |
-| `documentation` | Diátaxis framework (tutorials, how-to guides, reference, explanation). |
-| `skill-optimizer` | Improving skill activation, clarity, and regression resilience. |
-| `writer-persona` | Content in the author's personal voice. |
+| `bob` | Router con playbooks: propone el flujo que encaja, lo ejecuta con evidencia y configura el repo (`/bob setup`). |
+| `grill-with-docs` | Entrevista implacable que afina un plan y crea ADRs y glosario sobre la marcha. |
+| `to-spec` | Sintetiza la conversación en un spec y lo publica en el tracker. |
+| `to-tickets` | Divide un plan en tickets tracer-bullet con aristas de bloqueo. |
+| `implement` | Implementa un ticket o spec con `/tdd` y `/code-review`. |
+| `implement-spec` | Implementa un spec completo: subagentes en paralelo sobre el grafo de tareas. |
+| `tdd` | Desarrollo test-first, un slice red-green cada vez. |
+| `code-review` | Revisa un diff en dos ejes (estándares y spec) con subagentes paralelos. |
+| `pr` | Cómo escribir el cuerpo de una PR: visual mínimo, evidencia antes/después, puerta de una o dos vías. |
+| `retro` | Retrospectiva de una sesión; sugiere cambios en el entorno del agente. |
+| `triage` | Máquina de estados para issues entrantes; produce briefs listos para agente. |
+| `diagnosing-bugs` | Bucle de diagnóstico para bugs y regresiones de rendimiento. |
+| `wayfinder` | Planifica trabajo enorme como mapa de tickets de decisión. |
+| `prototype` | Prototipo desechable para responder una duda de diseño (lógica o UI). |
+| `research` | Investiga contra fuentes primarias en un agente de fondo y deja un Markdown citado. |
+| `improve-codebase-architecture` | Busca oportunidades de "profundizar" módulos y las presenta en un informe HTML. |
+| `codebase-design` | Vocabulario de módulos profundos (interfaz, seam, adapter, leverage…). |
+| `domain-modeling` | Afina el lenguaje de dominio: `GLOSSARY.md` y ADRs (en `<root>`). |
 
-## Subagents
+### Productivity — `skills/productivity/`
 
-Claude Code and Codex implement the tool-agnostic delegation principle in
-`AGENTS.md` with client-native agent definitions. They keep delegated work off
-the main session's context and model tier: the orchestrator dispatches a narrow
-task and receives a short report instead of raw tool output.
+| Skill | Qué hace |
+| --- | --- |
+| `grilling` | La primitiva de entrevista que usan las demás skills. |
+| `grill-me` | Lo mismo, sin estado, para cuando no hay repo. |
+| `handoff` | Compacta la conversación en un documento para otro agente, directorio o persona. |
+| `wait-what` | "Eso no se entendió": el agente vuelve a explicar el último mensaje en lenguaje llano. |
+| `writing-for-agents` | Referencia para escribir skills, `AGENTS.md` y `CLAUDE.md`. |
 
-`claude/agents/` is synced to `~/.claude/agents/`; each file in
-`codex/agents/` is linked into `~/.codex/agents/`. Per-file Codex links coexist
-with existing personal agents and preserve conflicting user-owned files or
-symlinks. Sync does not modify the user's `~/.codex/config.toml`.
+### Misc — `skills/misc/`
 
-| Agent | Claude model and tools | Codex model and sandbox | Use for |
-| --- | --- | --- | --- |
-| `explorer` | Haiku; Read, Grep, Glob | `gpt-5.6-luna`, low; read-only | Mechanical lookups — "where is X", "does Y exist". No judgment calls. |
-| `researcher` | Sonnet; WebFetch, WebSearch, Read, Grep, Glob, Write | `gpt-5.6-terra`, medium; read-only with live web search | Background research against primary sources. Codex returns citations to the parent instead of writing files. |
-| `reviewer` | Sonnet; Read, Grep, Glob, Bash (read-only) | `gpt-5.6-terra`, high; read-only | Auditing a diff or codebase region against a standard, spec, or heuristic. Never edits. |
+| Skill | Qué hace |
+| --- | --- |
+| `git-guardrails-claude-code` | Instala un hook que bloquea comandos git destructivos (`push`, `reset --hard`, `clean -f`, `branch -D`…). |
+| `writer-persona` | Escribe con la voz personal del autor: conversacional, honesta, sin hype. |
 
-Each client-specific definition pins its model independently of the
-orchestrating session. Switching the main session to a stronger model does not
-raise the cost tier of delegated lookups, research, or reviews.
+### Sueltas — `skills/`
 
-Mapped to the installed skill pipeline: `explorer` backs `grilling`'s
-fact-finding dispatch and `deep-research-codebase`'s parallel investigator
-partitions; `researcher` backs `/research` and `wayfinder`'s research
-tickets; `reviewer` backs `code-review`'s Standards/Spec axes and
-`improve-codebase-architecture`'s codebase walk. `/implement` and `/tdd`
-intentionally delegate to none of these — they run inline, because writing
-code correctly depends on context accumulated earlier in the session
-(grilling answers, the agreed spec) that a fresh subagent wouldn't have.
+| Skill | Qué hace |
+| --- | --- |
+| `explain-codebase` | Mapa conceptual compacto o traza profunda con informe citado. Solo lectura. |
+| `test-review` | Verifica que una MR de GitLab o la rama actual esté bien cubierta por tests; incremental entre iteraciones. |
+| `artifact` | Genera un HTML autocontenido y visual para aprender (diagramas, repo overview). |
 
-### When to reach for Opus instead of the default
+## Scripts
 
-The subagents above absorb the mechanical and read-only work at a fixed,
-cheap tier. What's left for the orchestrating session is judgment: deciding
-what to delegate, weighing conflicting subagent reports, and planning. That
-remaining work is where Opus earns its cost premium — and only there.
+| Script | Para qué sirve |
+| --- | --- |
+| `scripts/setup.sh` | Aplana `skills/**/SKILL.md` en symlinks `skills/<nombre>` y regenera `skills/.gitignore`. |
+| `skills/misc/git-guardrails-claude-code/scripts/block-dangerous-git.sh` | Hook `PreToolUse`: lee el comando por stdin, sale con código 2 si coincide con un patrón git peligroso. |
+| `skills/test-review/scripts/check-run.sh` | Comprobaciones mecánicas sobre un `run-N.md` de test-review (frontmatter, SHAs, secciones). Sale con 1 si hay algún `FAIL`. |
+| `skills/engineering/diagnosing-bugs/scripts/hitl-loop.template.sh` | Plantilla de bucle de reproducción con humano en el loop (`step`, `capture`). |
 
-**Switch the session to Opus (`/model opus`) before starting:**
+## Estructura de una skill
 
-- a `grilling` / `grill-with-docs` session with many branching decisions,
-  especially ones that are expensive to redo if misjudged;
-- reviewing or approving a large plan or ticket breakdown before
-  implementation starts — this is the cheapest point in the pipeline to
-  catch a mistake, so it's worth paying for the strongest judgment;
-- `codebase-design`'s DESIGN-IT-TWICE, where comparing radically different
-  interface designs on depth and seam placement is the entire point;
-- diagnosing a hard, non-obvious bug (`diagnosing-bugs`) where the quality
-  of the hypothesis matters more than the speed of forming one.
-
-**Switch back to the default (Sonnet) once you move into:**
-
-- `/implement` or `/tdd` loops — mechanical, well-specified, high-volume;
-- routine fixes, quick lookups, or anything a subagent could handle instead.
-
-Model choice is a per-session setting, not per-message — set it once at the
-start of a judgment-heavy phase and switch back when that phase ends, rather
-than leaving Opus on as the default driver for the whole workflow.
-
-## External skills
-
-External skills install into `skills/` (this repo). Two sources:
-
-1. **Vercel Skills CLI** (recommended) — installs from GitHub repos into `skills/`, tracked via `.skill-lock.json`:
-   ```bash
-   npx skills@latest add mattpocock/skills
-   npx skills list --global
-   npx skills@latest update --global
-   ```
-
-   To update the installed skills, run:
-   ```bash
-   # Update all installed skills.
-   npx skills@latest update --global
-
-   # Update one installed skill by its skill name.
-   npx skills@latest update tdd --global
-   ```
-   `mattpocock/skills` is a source repository, not an installed skill name. Do
-   not pass it to `update`.
-
-2. **Agent-native plugin managers** (e.g. Claude Code plugins) — managed outside this repo.
-
-Review `git status` before committing after installing external skills.
-
-## Agent synchronization
-
-| Agent | Instructions | Skills | Subagents | Settings |
-| --- | --- | --- | --- | --- |
-| Claude Code | `~/.claude/CLAUDE.md` (generated) | `~/.claude/skills/` (symlink) | `~/.claude/agents/` (symlink) | `~/.claude/settings.json` (symlink) |
-| Codex | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | TOML symlinks in `~/.codex/agents/` | Existing user config is preserved |
-| OpenCode | `~/.claude/CLAUDE.md` + `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — | — |
-| pi | `AGENTS.md` (walk-up) | Auto-loads from `~/.agents/skills/` | — | — |
-
-OpenCode also scans `~/.claude/skills/` for backwards compatibility; set `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` to skip it.
-
-### Sync agent configuration
-
-`setup.sh` runs the sync during initial setup. Run it again after:
-
-- editing or pulling changes to `AGENTS.md` or client-specific agent definitions;
-- changing generation or linking behavior in `sync.sh`; or
-- repairing generated instructions or managed Claude/Codex links.
-
-Run from the repository root:
-
-```bash
-bash sync.sh
+```
+skills/<categoría>/<nombre>/
+├── SKILL.md        # frontmatter (name, description) + instrucciones
+├── *.md            # documentos de apoyo que SKILL.md referencia
+└── scripts/        # opcional: comprobaciones o plantillas deterministas
 ```
 
-Use `bash sync.sh --dry-run` to preview the changes.
+La `description` decide cuándo se carga la skill, así que dice *qué hace* y *cuándo usarla*. Las que llevan `disable-model-invocation: true` (p. ej. `bob`) solo se ejecutan si las invocas tú. Consulta `/writing-for-agents` antes de crear o editar una.
 
-The sync produces this result:
+## Créditos
 
-- It generates `~/.claude/CLAUDE.md` from `AGENTS.md`.
-- It renames literal `AGENTS.md` references to `CLAUDE.md` in the generated file.
-- It links Claude's skills, agents, and settings to their shared files in `~/.agents/`.
-- It links Codex's custom agents without modifying `~/.codex/config.toml`.
-- It atomically replaces the old managed `CLAUDE.md` symlink.
-- It updates only files marked as generated and preserves an unmanaged `CLAUDE.md`.
-
-OpenCode, pi, and Codex read `AGENTS.md` directly. Codex sync only installs its custom agent definitions.
-
-## Updating
-
-```bash
-cd ~/Dev/agents && git pull && bash sync.sh
-npx skills@latest update --global  # all external skills
-```
-
-## Validating
-
-```bash
-bash check.sh
-```
+`skills/engineering/pr` reproduce el menú de visuales de la skill `show-me` de [Dex Horthy](https://github.com/dexhorthy); ver [`CREDITS.md`](skills/engineering/pr/CREDITS.md).
